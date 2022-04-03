@@ -1,0 +1,41 @@
+[core]
+	quotepath = false
+	excludesfile = ~/.config/git/ignore
+	attributesfile = ~/.config/git/attributes
+[user]
+	name = ymt2
+	email = tatsuya@ymt2.net
+	signingkey = 1435B26C8FC70A43
+[merge]
+	ff = false
+[pull]
+	rebase = true
+[push]
+	default = simple
+[alias]
+	ad = add
+	br = branch
+	co = checkout
+	ci = commit
+	sw = switch
+	undo = "!f() { \\\n    git reset --hard $(git rev-parse --abbrev-ref HEAD)@{${1-1}}; \\\n}; f"
+
+	# worktree
+	wta = "!f() { \\\n    git worktree add $(git rev-parse --show-cdup)git-worktrees/${1} -b ${1}; \\\n}; f"
+	wtp = worktree prune
+	wtrm = worktree prune
+[diff]
+	colorMoved = zebra
+[diff "sopsdiffer"]
+	textconv = "sops -d"
+[commit]
+	gpgsign = true
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
+[url "git@github.com:"]
+	insteadOf = https://github.com/
+[ghq]
+	root = ~/work/src

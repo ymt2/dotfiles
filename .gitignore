@@ -1,0 +1,5 @@
+.zshrc.local
+.zcompdump
+
+*.o
+*.hi

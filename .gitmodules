@@ -1,0 +1,18 @@
+[submodule "zsh/zsh.symlink/zsh-syntax-highlighting"]
+	path = zsh/zsh.symlink/zsh-syntax-highlighting
+	url = git@github.com:zsh-users/zsh-syntax-highlighting.git
+[submodule "zsh/zsh.symlink/zsh-autosuggestions"]
+	path = zsh/zsh.symlink/zsh-autosuggestions
+	url = git@github.com:zsh-users/zsh-autosuggestions.git
+[submodule "emacs/emacs.config/snippets/yasnippet-golang"]
+	path = emacs/emacs.config/snippets/yasnippet-golang
+	url = git@github.com:atotto/yasnippet-golang.git
+[submodule "zsh/zsh.symlink/powerlevel10k"]
+	path = zsh/zsh.symlink/powerlevel10k
+	url = git@github.com:romkatv/powerlevel10k.git
+[submodule "tmux/tmux.symlink/plugins/tpm"]
+	path = tmux/tmux.symlink/plugins/tpm
+	url = git@github.com:tmux-plugins/tpm.git
+[submodule "kitty/kitty.config/kitty-themes"]
+	path = kitty/kitty.config/kitty-themes
+	url = git@github.com:dexpota/kitty-themes.git
