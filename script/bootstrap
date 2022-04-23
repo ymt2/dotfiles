@@ -148,7 +148,7 @@ install_git_submodule() {
 install_zsh_local() {
     info 'installing local zsh configs'
 
-    touch $DOTFILES_ROOT/zsh/.zshrc.local
+    touch $DOTFILES_ROOT/zsh/zsh.config/.zshrc.local
 }
 
 install_dotfiles
