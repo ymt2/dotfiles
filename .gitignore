@@ -4,3 +4,5 @@
 
 *.o
 *.hi
+
+/systemd/systemd.config/user/default.target.wants
