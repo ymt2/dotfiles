@@ -1,3 +1,7 @@
+import Data.Maybe (fromJust, isJust)
+import System.Directory (findExecutable)
+import System.IO
+
 import XMonad
 import XMonad.Hooks.DynamicLog
 import XMonad.Hooks.EwmhDesktops -- For support wmctrl
@@ -6,16 +10,17 @@ import XMonad.Hooks.SetWMName
 import XMonad.Util.Run (spawnPipe)
 import XMonad.Util.SpawnOnce (spawnOnce)
 import XMonad.Util.EZConfig (additionalKeysP, removeKeysP)
-import System.IO
 
 superMask = mod4Mask
 altMask = mod1Mask
 
 main :: IO()
 main = do
+  myTerminal' <- myTerminal
+
   xmobar <- spawnPipe "xmobar"
-  xmonad $ docks $ ewmh $ defaultConfig
-    { terminal    = "urxvt"
+  xmonad $ docks $ ewmh $ def
+    { terminal    = myTerminal'
     , layoutHook  = myLayoutHook
     , manageHook  = myManageHook
     , logHook     = myLogHook xmobar
@@ -29,9 +34,26 @@ main = do
     [ "M-m" -- To keep alive spacemacs leader key
     ]
 
-myLayoutHook = avoidStruts $ layoutHook defaultConfig
+firstInstalled cmds = fromJust <$> firstM isInstalled cmds
+  where
+    firstM f [] = return Nothing
+    firstM f (m:ms) = do
+      ok <- f m
+      if ok then
+        return $ Just m
+      else
+        firstM f ms
+    isInstalled cmd = isJust <$> findExecutable cmd
 
-myManageHook = manageDocks <+> manageHook defaultConfig
+myTerminal = firstInstalled
+  [ "kitty"
+  , "urxvt"
+  , "xterm"
+  ]
+
+myLayoutHook = avoidStruts $ layoutHook def
+
+myManageHook = manageDocks <+> manageHook def
 
 myLogHook h = dynamicLogWithPP xmobarPP
   { ppOutput = hPutStrLn h
