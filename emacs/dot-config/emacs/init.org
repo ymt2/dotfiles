@@ -1,0 +1,1030 @@
+PROPERTIES:
+:END:
+#+title: .emacs
+
+* Startup
+
+** Set the garbage collector threshold, to avoid collections
+
+#+begin_src emacs-lisp
+(setq gc-cons-percentage 0.5
+gc-cons-threshold (* 128 1024 1024))
+#+end_src
+
+** Report time spent loading this module
+
+#+begin_src emacs-lisp
+(defconst emacs-start-time (current-time))
+
+(defun report-time-since-load (&optional suffix)
+  (message "Loading init...done (%.3fs)%s"
+           (float-time (time-subtract (current-time) emacs-start-time))
+           suffix))
+
+(add-hook 'after-init-hook
+          #'(lambda () (report-time-since-load " [after-init]"))
+          t)
+#+end_src
+
+** Load =use-package= for all the declarations below
+
+#+begin_src emacs-lisp
+(when (require 'package nil t)
+  (add-to-list 'package-archives
+	       '("melpa" . "https://melpa.org/packages/") t))
+
+(eval-and-compile
+  (defsubst emacs-path (path)
+    (expand-file-name path user-emacs-directory))
+
+  (setq package-enable-at-startup nil
+        load-path
+        (append (list (emacs-path "use-package"))
+                (delete-dups load-path)
+                (list (emacs-path "lisp")))))
+
+(require 'use-package)
+
+(setq use-package-verbose t ;; init-file-debug
+      use-package-expand-minimally nil ;; (not init-file-debug)
+      use-package-compute-statistics t ;; init-file-debug
+      debug-on-error init-file-debug
+      debug-on-quit init-file-debug)
+#+end_src
+
+** During loading of this module, clear =file-name-handler-alist=
+
+#+begin_src emacs-lisp
+(defvar file-name-handler-alist-old file-name-handler-alist)
+
+(setq file-name-handler-alist nil)
+
+(add-hook 'after-init-hook
+          #'(lambda ()
+              (setq file-name-handler-alist file-name-handler-alist-old)))
+#+end_src
+
+** Define the "data environment" for this instance of Emacs
+
+#+begin_src emacs-lisp
+;(defconst emacs-environment (getenv "NIX_MYENV_NAME"))
+(defconst emacs-environment "default")
+
+(defconst emacs-data-suffix
+  (cond ((string= "emacsERC" emacs-environment) "alt")
+	((string-match "emacs2[6789]\\(.+\\)$" emacs-environment)
+	 (match-string 1 emacs-environment))))
+
+(defconst alternate-emacs (string= emacs-data-suffix "alt"))
+
+(defconst user-data-directory
+  (emacs-path (if emacs-data-suffix
+		  (format "data-%s" emacs-data-suffix)
+		"data")))
+
+(defun user-data (dir)
+  (expand-file-name dir user-data-directory))
+#+end_src
+
+** Disable warnings about obsolete functions when compiling
+
+#+begin_src emacs-lisp
+(eval-when-compile
+  (dolist (sym '(cl-flet lisp-complete-symbol))
+    (setplist sym (use-package-plist-delete
+                   (symbol-plist sym) 'byte-obsolete-info))))
+#+end_src
+
+** Disable global eldoc-mode
+
+#+begin_src emacs-lisp
+(remove-hook 'after-change-major-mode-hook
+             'global-eldoc-mode-enable-in-buffers)
+
+(global-eldoc-mode -1)
+#+end_src
+
+** Garbage collect at the end of startup
+
+#+begin_src emacs-lisp
+(add-hook 'after-init-hook #'garbage-collect t)
+#+end_src
+
+** Define standard colors
+
+* Helper functions
+
+** add-all-to-list
+
+#+begin_src emacs-lisp
+(defun add-all-to-list (var &rest elems)
+  (dolist (elem (reverse elems))
+    (add-to-list var elem)))
+#+end_src
+
+* Packages
+
+** epg
+
+#+begin_src emacs-lisp
+(use-package epg
+  :defer t
+  ;; :custom
+  ;; (epg-gpg-program "/usr/local/bin/gpg")
+  :config
+  (put 'epg-gpg-program 'customized-value t))
+#+end_src
+
+** emacs
+
+This pseudo-package represents Emacs itself, and configures many variables and
+advices that relate to core functionality that isn't considered a "package"
+unto itself.
+
+#+begin_src emacs-lisp
+(use-package emacs
+  :demand t
+  :bind*
+  ("<C-return>" . other-window)
+  :custom
+  ;; scroll-bar.el
+  (scroll-bar-mode nil)
+  (tool-bar-mode nil)
+  (menu-bar-mode nil)
+  :custom-face
+  (cursor ((t (:background "hotpink"))))
+  (highlight ((t (:background "blue4"))))
+  (minibuffer-prompt ((t (:foreground "grey80"))))
+  (mode-line-inactive ((t (:background "grey50"))))
+  (nobreak-space ((t nil)))
+  (variable-pitch ((t (:height 1.2 :family "Bookerly"))))
+  ;:init
+  :config
+  (define-key key-translation-map (kbd "C-h") (kbd "<DEL>")))
+#+end_src
+
+** autorevert
+
+#+begin_src emacs-lisp
+(use-package autorevert
+  :custom
+  (auto-revert-use-notify nil)
+  :config
+  (global-auto-revert-mode t))
+#+end_src
+
+** avy
+
+#+begin_src emacs-lisp
+(use-package avy
+  :bind ("C-." . avy-goto-char-timer)
+  :custom
+  (avy-case-fold-search t)
+  (avy-keys '(97 111 101 117 105 100 104 116 110 115))
+  (avy-timeout-seconds 0.3)
+  :functions (avy-setup-default)
+  :config
+  (avy-setup-default)
+
+  (define-key isearch-mode-map (kbd "C-.") 'avy-isearch))
+#+end_src
+
+*** avy-migemo
+
+#+begin_src emacs-lisp
+(use-package emacs
+  :demand t
+  :after (avy migemo)
+  :bind ("C-." . avy-goto-migemo-timer)
+  :preface
+  (defun avy-goto-migemo-timer (&optional arg)
+    (interactive "P")
+    (let ((avy-all-windows (if arg
+                               (not avy-all-windows)
+                             avy-all-windows)))
+      (avy-with avy-goto-migemo-timer
+		(setq avy--old-cands (avy--read-candidates #'migemo-get-pattern))
+		(avy-process avy--old-cands))))
+  ;;(add-to-list 'avy-styles-alist '(avy-goto-migemo-timer . pre))
+  )
+#+end_src
+
+** color-theme
+
+#+begin_src emacs-lisp
+(use-package color-theme
+  :no-require t
+  :init
+  (deftheme midnight
+    "midnight theme")
+
+  (custom-theme-set-faces
+   'midnight
+
+   '(default ((t (:background "black" :foreground "grey85"))))
+   '(mouse ((t (:foreground "grey85"))))
+   '(cursor ((t (:background "grey85"))))
+
+   '(font-lock-comment-face ((t (:italic t :foreground "grey60"))))
+   '(font-lock-string-face ((t (:foreground "Magenta"))))
+   '(font-lock-keyword-face ((t (:foreground "Cyan"))))
+   '(font-lock-warning-face ((t (:bold t :foreground "Pink"))))
+   '(font-lock-constant-face ((t (:foreground "OliveDrab"))))
+   '(font-lock-type-face ((t (:foreground "DarkCyan"))))
+   '(font-lock-variable-name-face ((t (:foreground "DarkGoldenrod"))))
+   '(font-lock-function-name-face ((t (:foreground "SlateBlue"))))
+   '(font-lock-builtin-face ((t (:foreground "SkyBlue"))))
+   '(highline-face ((t (:background "grey12"))))
+   '(setnu-line-number-face ((t (:background "Grey15" :foreground "White" :bold t))))
+   '(show-paren-match-face ((t (:background "grey30"))))
+   '(region ((t (:background "grey15"))))
+   '(highlight ((t (:background "blue"))))
+   '(secondary-selection ((t (:background "navy"))))
+   '(widget-field-face ((t (:background "navy"))))
+   '(widget-single-line-field-face ((t (:background "royalblue")))))
+  :config
+  (enable-theme 'midnight))
+#+end_src
+
+** compile
+
+#+begin_src emacs-lisp
+(use-package compile
+  :bind (("C-c c" . compile)
+         ("M-O"   . show-compilation))
+  :bind (:map compilation-mode-map
+              ("z" . delete-window))
+  :hook (compilation-filter . compilation-ansi-color-process-output)
+  :custom
+  (compilation-always-kill t)
+  (compilation-ask-about-save nil)
+  (compilation-context-lines 10)
+  (compilation-scroll-output 'first-error)
+  (compilation-skip-threshold 2)
+  (compilation-window-height 100)
+  :preface
+  (defun show-compilation ()
+    (interactive)
+    (let ((it
+           (catch 'found
+             (dolist (buf (buffer-list))
+               (when (string-match "\\*compilation\\*" (buffer-name buf))
+                 (throw 'found buf))))))
+      (if it
+          (display-buffer it)
+        (call-interactively 'compile))))
+
+  (defun compilation-ansi-color-process-output ()
+    (ansi-color-process-output nil)
+    (set (make-local-variable 'comint-last-output-start)
+         (point-marker))))
+#+end_src
+
+** ddskk
+
+#+begin_src emacs-lisp
+(use-package ddskk
+  :ensure t
+  :bind (("C-x j" . skk-auto-fill-mode))
+  :init
+  (if (eq system-type 'darwin)
+      (progn (setq skk-server-host "localhost"
+                 skk-server-portnum 1178))))
+#+end_src
+
+*** skk-study
+
+#+begin_src emacs-lisp
+(use-package skk-study)
+#+end_src
+
+** ibuffer
+
+#+begin_src emacs-lisp
+(use-package ibuffer
+  :bind ("C-x C-b" . ibuffer)
+  :custom
+  (ibuffer-default-display-maybe-show-predicates t)
+  (ibuffer-expert t)
+  (ibuffer-formats
+   '((mark modified read-only " "
+           (name 16 -1)
+           " "
+           (size 6 -1 :right)
+           " "
+           (mode 16 16)
+           " " filename)
+     (mark " "
+           (name 16 -1)
+           " " filename)))
+  (ibuffer-maybe-show-regexps nil)
+  (ibuffer-saved-filter-groups
+   '(("default"
+      ("Magit"
+       (or
+        (mode . magit-status-mode)
+        (mode . magit-log-mode)
+        (name . "\\*magit")
+        (name . "magit-")
+        (name . "git-monitor")))
+      ("Coq"
+       (or
+        (mode . coq-mode)
+        (name . "\\<coq\\>")
+        (name . "_CoqProject")))
+      ("Commands"
+       (or
+        (mode . shell-mode)
+        (mode . eshell-mode)
+        (mode . term-mode)
+        (mode . compilation-mode)))
+      ("Haskell"
+       (or
+        (mode . haskell-mode)
+        (mode . haskell-cabal-mode)
+        (mode . haskell-literate-mode)))
+      ("Rust"
+       (or
+        (mode . rust-mode)
+        (mode . cargo-mode)
+        (name . "\\*Cargo")
+        (name . "^\\*rls\\(::stderr\\)?\\*")
+        (name . "eglot")))
+      ("Nix"
+       (mode . nix-mode))
+      ("C++"
+       (or
+        (mode . c-mode)
+        (mode . c++-mode)))
+      ("Lisp"
+       (mode . emacs-lisp-mode))
+      ("Dired"
+       (mode . dired-mode))
+      ("Gnus"
+       (or
+        (mode . message-mode)
+        (mode . mail-mode)
+        (mode . gnus-group-mode)
+        (mode . gnus-summary-mode)
+        (mode . gnus-article-mode)
+        (name . "^\\.newsrc-dribble")
+        (name . "^\\*\\(sent\\|unsent\\|fetch\\)")
+        (name . "^ \\*\\(nnimap\\|nntp\\|nnmail\\|gnus\\|server\\|mm\\*\\)")
+        (name . "\\(Original Article\\|canonical address\\|extract address\\)")))
+      ("Org"
+       (or
+        (name . "^\\*Calendar\\*$")
+        (name . "^\\*Org Agenda")
+        (name . "^ \\*Agenda")
+        (mode . org-mode)))
+      ("Emacs"
+       (or
+        (name . "^\\*scratch\\*$")
+        (name . "^\\*Messages\\*$")
+        (name . "^\\*\\(Customize\\|Help\\)")
+        (name . "\\*\\(Echo\\|Minibuf\\)")))
+      ("Go"
+       (or
+	(mode . go-ts-mode))))))
+  (ibuffer-show-empty-filter-groups nil)
+  (ibuffer-shrink-to-minimum-size t t)
+  (ibuffer-use-other-window t)
+  :init
+  (add-hook 'ibuffer-mode-hook
+            #'(lambda ()
+                (ibuffer-switch-to-saved-filter-groups "default"))))
+#+end_src
+
+** indent
+
+#+begin_src emacs-lisp
+(use-package indent
+  :commands indent-according-to-mode
+  :custom
+  (tab-always-indent 'complete))
+#+end_src
+
+** magit
+
+#+begin_src emacs-lisp
+(use-package magit
+  :bind (("C-x g" . magit-status)
+         ("C-x G" . magit-status-with-prefix)))
+#+end_src
+
+** migemo
+
+#+begin_src emacs-lisp
+(use-package migemo
+  :load-path "lisp/migemo"
+  :config
+  (setq migemo-command "cmigemo"
+        migemo-options '("-q" "-e")
+	migemo-user-dictionary nil
+        migemo-regex-dictionary nil
+        migemo-coding-system 'utf-8-unix)
+  (when (eq system-type 'darwin)
+    (setq migemo-dictionary "/opt/homebrew/Cellar/cmigemo/20110227/share/migemo/utf-8/migemo-dict"))
+  (when (eq system-type 'gnu/linux)
+    (setq migemo-dictionary "/usr/share/cmigemo/utf-8/migemo-dict"))
+  (when (eq system-type 'windows-nt)
+    ;; needs absolute path
+    (setq migemo-dictionary (expand-file-name "~/scoop/apps/cmigemo/current/cmigemo-mingw64/share/migemo/utf-8/migemo-dict")))
+  (migemo-init))
+#+end_src
+
+** org-mode
+
+#+begin_src emacs-lisp
+(use-package org
+  :demand t
+  :commands org-resolve-clocks
+  :hook
+  (org-mode . abbrev-mode)
+  (org-mode . turn-on-auto-fill)
+  :custom
+  (org-edit-src-content-indentation 0))
+#+end_src
+
+** personal
+
+#+begin_src emacs-lisp
+(use-package personal
+  :demand t
+  :bind (("C-a" . beginning-of-line-or-indentation)))
+#+end_src
+
+** projectile
+
+#+begin_src emacs-lisp
+(use-package projectile
+  :diminish
+  ;:bind* (("C-c TAB" . projectile-find-other-file)
+  ;        ("C-c P"   . (lambda () (interactive)
+  ;                       (projectile-cleanup-known-projects)
+  ;                       (projectile-discover-projects-in-search-path))))
+  :bind-keymap ("C-c p" . projectile-command-map)
+  :config
+  (projectile-mode))
+#+end_src
+
+** savehist
+
+#+begin_src emacs-lisp
+(use-package savehist
+  :unless noninteractive
+  :custom
+  (savehist-additional-variables
+   '(file-name-history
+     kmacro-ring
+     compile-history
+     compile-command))
+  (savehist-autosave-interval 60)
+  (savehist-file (user-data "history"))
+  (savehist-ignored-variables
+   '(load-history
+     flyspell-auto-correct-ring
+     org-roam-node-history
+     magit-revision-history
+     org-read-date-history
+     query-replace-history
+     yes-or-no-p-history
+     kill-ring))
+  (savehist-mode t)
+  :config
+  (savehist-mode 1))
+#+end_src
+
+** smart-newline
+
+#+begin_src emacs-lisp
+(use-package smart-newline
+  :diminish
+  :commands smart-newline-mode)
+#+end_src
+
+** smartparens
+
+#+begin_src emacs-lisp
+(use-package smartparens-config
+  :commands smartparens-mode
+  :custom
+  (sp-highlight-pair-overlay nil))
+#+end_src
+
+** transient
+
+#+begin_src emacs-lisp
+(use-package transient
+  :defer t
+  :custom
+  (transient-history-file (user-data "transient/history.el"))
+  (transient-values-file (user-data "transient/values.el")))
+#+end_src
+
+** treesit
+
+#+begin_src emacs-lisp
+(use-package treesit
+  :config
+  (setq treesit-language-source-alist
+      '((go "https://github.com/tree-sitter/tree-sitter-go")
+        (gomod "https://github.com/camdencheek/tree-sitter-go-mod")
+	(json "https://github.com/tree-sitter/tree-sitter-json")
+        (python "https://github.com/tree-sitter/tree-sitter-python")
+	(tsx "https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src")
+        (typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src")
+        ))
+  (dolist (element treesit-language-source-alist)
+    (let* ((lang (car element)))
+      (if (treesit-language-available-p lang)
+          (message "treesit: %s is already installed" lang)
+	(message "treesit: %s is not installed" lang)
+	(treesit-install-language-grammar lang))))
+  (setq treesit-font-lock-level 4))
+#+end_src
+
+*** treesit-auto
+
+#+begin_src emacs-lisp
+(use-package treesit-auto
+  :disabled
+  :ensure t
+  :custom
+  (treesit-auto-install 'prompt)
+  :config
+  (treesit-auto-add-to-auto-mode-alist 'all)
+  (global-treesit-auto-mode))
+#+end_src
+
+** uniquify
+
+#+begin_src emacs-lisp
+(use-package uniquify
+  :custom
+  (uniquify-buffer-name-style 'post-forward-angle-brackets))
+#+end_src
+
+** vundo
+
+#+begin_src emacs-lisp
+(use-package vundo
+  :ensure
+  :bind (("C-c C-/" . vundo)))
+#+end_src
+
+** which-func
+
+#+begin_src emacs-lisp
+(use-package which-func
+  :hook (c-mode-common . which-function-mode))
+#+end_src
+
+** which-key
+
+#+begin_src emacs-lisp
+(use-package which-key
+  :demand t
+  :diminish
+  :config
+  (which-key-mode))
+#+end_src
+
+** whitespace
+
+#+begin_src emacs-lisp
+(use-package whitespace
+  :diminish (global-whitespace-mode
+             whitespace-mode
+             whitespace-newline-mode)
+  :commands (whitespace-buffer
+             whitespace-cleanup
+             whitespace-mode
+             whitespace-turn-off)
+  :custom
+  (whitespace-auto-cleanup t t)
+  (whitespace-line-column 80)
+  (whitespace-rescan-timer-time nil t)
+  (whitespace-silent t t)
+  (whitespace-style '(face trailing lines-tail space-before-tab))
+  :custom-face
+  (whitespace-line ((t (:background "yellow"))))
+  :defines
+  (whitespace-auto-cleanup
+   whitespace-rescan-timer-time
+   whitespace-silent)
+  :preface
+  (defvar normalize-hook nil)
+
+  (defun normalize-file ()
+    (interactive)
+    (save-excursion
+      (goto-char (point-min))
+      (whitespace-cleanup)
+      (run-hook-with-args normalize-hook)
+      (delete-trailing-whitespace)
+      (goto-char (point-max))
+      (delete-blank-lines)
+      (set-buffer-file-coding-system 'unix)
+      (goto-char (point-min))
+      (while (re-search-forward "\r$" nil t)
+        (replace-match ""))
+      (set-buffer-file-coding-system 'utf-8)
+      (let ((require-final-newline t))
+        (save-buffer))))
+
+  (defun maybe-turn-on-whitespace ()
+    "depending on the file, maybe clean up whitespace."
+    (when (and (not (or (memq major-mode '(markdown-mode))
+                        (and buffer-file-name
+                             (string-match "\\(\\.texi\\|COMMIT_EDITMSG\\)\\'"
+                                           buffer-file-name))))
+               (locate-dominating-file default-directory ".clean")
+               (not (locate-dominating-file default-directory ".noclean")))
+      (whitespace-mode 1)
+      ;; For some reason, having these in settings.el gets ignored if
+      ;; whitespace loads lazily.
+      (setq whitespace-auto-cleanup t
+            whitespace-line-column 80
+            whitespace-rescan-timer-time nil
+            whitespace-silent t
+            whitespace-style '(face trailing lines space-before-tab empty))
+      (add-hook 'write-contents-functions
+                #'(lambda () (ignore (whitespace-cleanup))) nil t)
+      (whitespace-cleanup)))
+
+  :init
+  (add-hook 'find-file-hook #'maybe-turn-on-whitespace t)
+
+  :config
+  (remove-hook 'find-file-hook 'whitespace-buffer)
+  (remove-hook 'kill-buffer-hook 'whitespace-buffer))
+#+end_src
+
+*** whitespace-cleanup-mode
+
+#+begin_src emacs-lisp
+(use-package whitespace-cleanup-mode
+  :ensure
+  :demand t
+  :diminish
+  :commands whitespace-cleanup-mode
+  :config
+  (global-whitespace-cleanup-mode 1))
+#+end_src
+
+** Completions
+
+*** consult
+
+#+begin_src emacs-lisp
+(use-package consult
+  :bind (;; C-c bindings (mode-specific-map)
+	 ("C-c M-x" . consult-mode-command)
+         ("C-c h"   . consult-history)
+         ("C-c K"   . consult-kmacro)
+         ("C-c e i" . consult-info)
+         ([remap Info-search] . consult-info)
+
+	 ("C-*"     . consult-org-heading)
+         ;("C-c e l" . find-library)
+         ;("C-c e q" . set-variable)
+         ;("C-h e l" . find-library)
+
+	 ;; C-x bindings (ctl-x-map)
+         ;("C-x M-:" . consult-complex-command)
+         ("C-x b"   . consult-buffer)
+	 ;("C-x 4 b" . consult-buffer-other-window)
+         ;("C-x 5 b" . consult-buffer-other-frame)
+         ;("C-x r b" . consult-bookmark)
+         ;("C-x 4 j" . consult-bookmark-other-window)
+         ;("C-x p f" . project-find-file)
+         ;("C-x p b" . consult-project-buffer)
+	 ;; Other custom bindings
+         ("M-y"     . consult-yank-pop)
+	 ;; M-g bindings (goto-map)
+         ("M-g e"   . consult-compile-error)
+         ("M-g g"   . consult-goto-line)
+         ("M-g M-g" . consult-goto-line)
+         ("M-g l"   . consult-goto-line)
+         ([remap goto-line] . consult-goto-line)
+  ))
+#+end_src
+
+**** consult-dir
+
+#+begin_src emacs-lisp
+(use-package consult-dir
+  :ensure t
+  :bind (("M-g d"   . consult-dir)
+         :map minibuffer-local-completion-map
+         ("M-s f" . consult-dir-jump-file)
+         ("M-g d" . consult-dir)))
+#+end_src
+
+**** consult-dir-vertico
+
+#+begin_src emacs-lisp
+(use-package consult-dir-vertico
+  :no-require t
+  :after (consult-dir vertico)
+  :defines (vertico-map)
+  :bind (:map vertico-map
+              ("C-x C-j" . consult-dir)
+              ("M-g d"   . consult-dir)
+              ("M-s f"   . consult-dir-jump-file)))
+#+end_src
+
+*** corfu
+
+#+begin_src emacs-lisp
+(use-package corfu
+  :ensure t
+  :custom
+  (corfu-auto t)
+  (corfu-cycle t)
+  :bind (:map corfu-map
+	      ("SPC" . corfu-insert-separator)
+	      ("TAB" . corfu-next))
+  :init
+  (global-corfu-mode))
+#+end_src
+
+**** corfu-popup
+
+#+begin_src emacs-lisp
+(use-package corfu-popupinfo
+  :ensure nil
+  :after corfu
+  :hook (corfu-mode . corfu-popupinfo-mode)
+  :custom
+  (corfu-popupinfo-delay 0))
+#+end_src
+
+*** cape
+
+#+begin_src emacs-lisp
+(use-package cape
+  :ensure t
+  :demand t
+  :bind (:prefix-map
+         my-cape-map
+         :prefix "C-c ."
+         ("p" . completion-at-point)
+         ("t" . complete-tag)
+         ("d" . cape-dabbrev)
+         ("h" . cape-history)
+         ("f" . cape-file)
+         ("k" . cape-keyword)
+         ("s" . cape-elisp-symbol)
+         ("a" . cape-abbrev)
+         ("l" . cape-line)
+         ("w" . cape-dict)
+         ("\\" . cape-tex)
+         ("_" . cape-tex)
+         ("^" . cape-tex)
+         ("&" . cape-sgml)
+         ("r" . cape-rfc1345))
+  :init
+  ;; Add `completion-at-point-functions', used by `completion-at-point'.
+  (add-all-to-list 'completion-at-point-functions
+                   #'cape-dabbrev
+                   #'cape-file
+                   #'cape-abbrev))
+#+end_src
+
+*** marginalia
+
+#+begin_src emacs-lisp
+;; Enable rich annotations using the Marginalia package
+(use-package marginalia
+  :ensure t
+  ;; Either bind `marginalia-cycle' globally or only in the minibuffer
+  :bind (("M-A" . marginalia-cycle)
+         :map minibuffer-local-map
+         ("M-A" . marginalia-cycle))
+
+  ;; The :init section is always executed.
+  :init
+
+  ;; Marginalia must be activated in the :init section of use-package such that
+  ;; the mode gets enabled right away. Note that this forces loading the
+  ;; package.
+  (marginalia-mode))
+#+end_src
+
+*** orderless
+
+#+begin_src emacs-lisp
+(use-package orderless
+  :ensure t
+  :demand t
+  :after migemo
+  :config
+  (defun orderless-migemo (component)
+    (let ((pattern (migemo-get-pattern component)))
+      (condition-case nil
+          (progn (string-match-p pattern "") pattern)
+        (invalid-regexp nil))))
+
+  ;;  (orderless-define-completion-style orderless-default-style
+  ;;    (orderless-matching-styles '(orderless-initialism
+  ;;				 orderless-literal
+  ;;				 orderless-regexp)))
+
+  ;;  (orderless-define-completion-style orderless-migemo-style
+  ;;    (orderless-matching-styles '(orderless-initialism
+  ;;				 orderless-literal
+  ;;				 orderless-regexp
+  ;;				 orderless-migemo)))
+
+  ;;  (setq completion-category-overrides
+  ;;        '((command (styles orderless-default-style))
+  ;;          (file (styles orderless-migemo-style))
+  ;;          (buffer (styles orderless-migemo-style))
+  ;;          (symbol (styles orderless-default-style))
+  ;;          (consult-location (styles orderless-migemo-style))
+  ;;          (consult-multi (styles orderless-migemo-style))
+  ;;          (org-roam-node (styles orderless-migemo-style))
+  ;;          (unicode-name (styles orderless-migemo-style))
+  ;;          (variable (styles orderless-default-style))))
+  ;(setq orderless-matching-styles '(orderless-literal orderless-regexp orderless-migemo))
+  :custom
+  (completion-styles '(orderless basic))
+  (completion-category-overrides
+   '((file (styles basic partial-completion)))))
+#+end_src
+
+*** vertico
+
+#+begin_src emacs-lisp
+(use-package vertico
+  :ensure t
+  :after cape
+  :demand t
+  :custom
+  (vertico-count 20)
+  (vertico-resize nil)
+  (vertico-cycle t)
+  :config
+  (vertico-mode)
+
+  ;; Hide commands in M-x which do not work in the current mode.  Vertico
+  ;; commands are hidden in normal buffers. This setting is useful beyond
+  ;; Vertico.
+  (setq read-extended-command-predicate #'command-completion-default-include-p)
+
+  ;; Do not allow the cursor in the minibuffer prompt
+  (setq minibuffer-prompt-properties
+        '(read-only t cursor-intangible t face minibuffer-prompt)))
+#+end_src
+
+**** vertico-repeat
+
+#+begin_src emacs-lisp
+(use-package vertico-repeat
+  :after vertico
+  :ensure nil
+  :demand t)
+#+end_src
+
+**** vertico-directory
+
+#+begin_src emacs-lisp
+(use-package vertico-directory
+  :after vertico
+  :demand t
+  :ensure nil
+  :bind (:map vertico-map
+              ("<backspace>"   . vertico-directory-delete-char)
+              ("C-w"           . vertico-directory-delete-word)
+              ("C-<backspace>" . vertico-directory-delete-word)
+              ;; ("RET" .           vertico-directory-enter)
+              ))
+#+end_src
+
+**** vertico-multiform
+
+#+begin_src emacs-lisp
+(use-package vertico-multiform
+  :disabled
+  :after vertico
+  :demand t
+  :ensure nil
+  :bind (:map vertico-map
+              ("C-i"   . vertico-multiform-vertical)
+              ("<tab>" . vertico-insert))
+  :custom
+  (setq vertico-multiform-commands
+   '((consult-imenu buffer)
+     (consult-line buffer)
+     (consult-grep buffer)
+     (consult-git-grep buffer)
+     (consult-ripgrep buffer)
+     (consult-yank-pop)
+     (embark-bindings buffer)
+     (xref-find-references buffer)))
+  (vertico-multiform-categories
+   '((t unobtrusive)))
+  :config
+  (vertico-multiform-mode 1))
+#+end_src
+
+** Languages
+
+*** eglot
+
+#+begin_src emacs-lisp
+(use-package eglot
+  :ensure t
+  :commands eglot
+  :bind
+  (:map eglot-mode-map
+        ("M-^"     . eglot-find-implementation)
+        ("C-c C-." . eglot-code-actions))
+  :custom
+  (eglot-autoshutdown t)
+  :config
+  (setq read-process-output-max (* 1024 1024))
+
+  (add-hook 'eglot-managed-mode-hook
+            #'(lambda ()
+                ;; Show flymake diagnostics first.
+                (setq eldoc-documentation-functions
+                      (cons #'flymake-eldoc-function
+                            (remove #'flymake-eldoc-function
+                                    eldoc-documentation-functions))))))
+#+end_src
+
+**** eglot-booster
+
+#+begin_src emacs-lisp
+(use-package eglot-booster
+  :after eglot
+  :config
+  (eglot-booster-mode))
+#+end_src
+
+*** go-ts-mode
+
+#+begin_src emacs-lisp
+(use-package go-ts-mode)
+#+end_src
+
+**** go-ts-mode-eglot
+
+#+begin_src emacs-lisp
+(use-package go-ts-mode-eglot
+  :no-require t
+  :demand t
+  :after (go-ts-mode eglot)
+  :hook ((go-ts-mode-hook . eglot-ensure)
+	 (go-ts-mode . go-eglot-format-buffer-before-save))
+  :preface
+  ;; Optional: install eglot-format-buffer as a save hook.
+  ;; The depth of -10 places this before eglot's willSave notification,
+  ;; so that that notification reports the actual contents that will be saved.
+  (defun go-eglot-format-buffer-before-save ()
+    (add-hook 'before-save-hook #'eglot-format-buffer -10 t)))
+#+end_src
+
+*** graphql-mode
+
+#+begin_src emacs-lisp
+(use-package graphql-mode
+  :ensure t
+  :mode "\\.graphqls?\\'")
+#+end_src
+
+** AI
+
+*** copilot-chat
+
+#+begin_src emacs-lisp
+(use-package copilot-chat
+  :ensure)
+#+end_src
+
+*** copilot-eglot
+
+#+begin_src emacs-lisp
+(use-package copilot-language-server-eglot
+  :disabled
+  :no-require t
+  :demand t
+  :after (eglot)
+  :config
+  (add-to-list 'eglot-server-programs
+               '(go-ts-mode . ((concat (getenv "HOME")
+				     "/node_modules/@github/copilot-language-server/native/darwin-arm64/copilot-language-server") "--stdio"))))
+#+end_src
+
+* Finalization
+
+#+begin_src emacs-lisp
+(report-time-since-load)
+
+;; Local Variables:
+;; byte-compile-warnings: (not docstrings lexical noruntime)
+;; End:
+#+end_src
