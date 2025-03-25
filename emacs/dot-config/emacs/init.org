@@ -527,14 +527,16 @@ unto itself.
 #+begin_src emacs-lisp
 (use-package treesit
   :config
+  ; from https://github.com/emacs-tree-sitter/tree-sitter-langs/tree/master/repos
   (setq treesit-language-source-alist
-      '((go "https://github.com/tree-sitter/tree-sitter-go")
-        (gomod "https://github.com/camdencheek/tree-sitter-go-mod")
-	(json "https://github.com/tree-sitter/tree-sitter-json")
-        (python "https://github.com/tree-sitter/tree-sitter-python")
-	(tsx "https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src")
-        (typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src")
-        ))
+	'((go "https://github.com/tree-sitter/tree-sitter-go")
+	  (gomod "https://github.com/camdencheek/tree-sitter-go-mod")
+          (json "https://github.com/tree-sitter/tree-sitter-json")
+          (python "https://github.com/tree-sitter/tree-sitter-python")
+	  (tsx "https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src")
+          (typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src")
+	  (yaml "https://github.com/ikatyang/tree-sitter-yaml")
+          ))
   (dolist (element treesit-language-source-alist)
     (let* ((lang (car element)))
       (if (treesit-language-available-p lang)
@@ -994,6 +996,33 @@ unto itself.
 (use-package graphql-mode
   :ensure t
   :mode "\\.graphqls?\\'")
+#+end_src
+
+*** YAML
+
+**** yaml-mode
+
+#+begin_src emacs-lisp
+(use-package yaml-mode
+  :ensure t
+  :pin nongnu
+  :mode "\\.ya?ml\\'")
+#+end_src
+
+**** yaml-pro
+
+#+begin_src emacs-lisp
+(use-package yaml-pro
+  :ensure t
+  :after yaml
+  :hook (yaml-mode . yaml-pro-mode))
+#+end_src
+
+***** yaml.el
+
+#+begin_src emacs-lisp
+(use-package yaml
+  :ensure t)
 #+end_src
 
 ** AI
