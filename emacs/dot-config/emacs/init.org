@@ -302,7 +302,7 @@ unto itself.
 
 #+begin_src emacs-lisp
 (use-package diff-hl
-N  :ensure t
+  :ensure t
   :hook ((dired-mode . diff-hl-dired-mode)
 	 (magit-post-refresh . diff-hl-magit-post-refresh))
   :init
@@ -318,6 +318,19 @@ N  :ensure t
   :after diff-hl
   :init
   (diff-hl-flydiff-mode))
+#+end_src
+
+** highlight-indent-guides
+
+#+begin_src emacs-lisp
+(use-package highlight-indent-guides
+  :ensure t
+  :diminish
+  :hook ((prog-mode yaml-mode) . highlight-indent-guides-mode)
+  :custom
+  (highlight-indent-guides-auto-enabled t)
+  (highlight-indent-guides-responsive t)
+  (highlight-indent-guides-method 'character))
 #+end_src
 
 ** ibuffer
