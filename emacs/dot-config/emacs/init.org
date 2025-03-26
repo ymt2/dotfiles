@@ -509,6 +509,13 @@ unto itself.
 (use-package rainbow-mode
   :ensure t
   :hook ((css-mode . rainbow-mode)))
+
+** rainbow-delimiters
+
+#+begin_src emacs-lisp
+(use-package rainbow-delimiters
+  :ensure t
+  :hook (prog-mode . rainbow-delimiters-mode))
 #+end_src
 
 ** savehist
