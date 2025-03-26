@@ -503,6 +503,14 @@ unto itself.
   (projectile-mode))
 #+end_src
 
+** rainbow-mode
+
+#+begin_src emacs-lisp
+(use-package rainbow-mode
+  :ensure t
+  :hook ((css-mode . rainbow-mode)))
+#+end_src
+
 ** savehist
 
 #+begin_src emacs-lisp
