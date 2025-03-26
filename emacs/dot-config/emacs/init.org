@@ -298,6 +298,28 @@ unto itself.
 (use-package skk-study)
 #+end_src
 
+** diff-hl
+
+#+begin_src emacs-lisp
+(use-package diff-hl
+N  :ensure t
+  :hook ((dired-mode . diff-hl-dired-mode)
+	 (magit-post-refresh . diff-hl-magit-post-refresh))
+  :init
+  (global-diff-hl-mode)
+  (global-diff-hl-show-hunk-mouse-mode)
+  (unless (window-system) (diff-hl-margin-mode)))
+#+end_src
+
+*** diff-hl-flydiff
+
+#+begin_src emacs-lisp
+(use-package diff-hl-flydiff
+  :after diff-hl
+  :init
+  (diff-hl-flydiff-mode))
+#+end_src
+
 ** ibuffer
 
 #+begin_src emacs-lisp
