@@ -1,4 +1,9 @@
-emacs/dot-config/emacs/init.el
 .zcompdump
 .zsh_sessions
 .zshrc.local
+
+emacs/dot-config/emacs/init.el
+emacs/dot-config/emacs/data/
+emacs/dot-config/emacs/eln-cache/
+emacs/dot-config/emacs/elpa/
+emacs/dot-config/emacs/tree-sitter/
