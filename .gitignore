@@ -1,1 +1,4 @@
 emacs/dot-config/emacs/init.el
+.zcompdump
+.zsh_sessions
+.zshrc.local

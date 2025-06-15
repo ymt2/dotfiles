@@ -1,3 +1,12 @@
 [submodule "kitty/dot-config/kitty/kitty-themes"]
 	path = kitty/dot-config/kitty/kitty-themes
 	url = git@github.com:dexpota/kitty-themes.git
+[submodule "zsh/dot-zsh/zsh-syntax-highlighting"]
+	path = zsh/dot-zsh/zsh-syntax-highlighting
+	url = git@github.com:zsh-users/zsh-syntax-highlighting.git
+[submodule "zsh/dot-zsh/zsh-autosuggestions"]
+	path = zsh/dot-zsh/zsh-autosuggestions
+	url = git@github.com:zsh-users/zsh-autosuggestions.git
+[submodule "zsh/dot-zsh/powerlevel10k"]
+	path = zsh/dot-zsh/powerlevel10k
+	url = git@github.com:romkatv/powerlevel10k.git
