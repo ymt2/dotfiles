@@ -1,5 +1,7 @@
+PACKAGES := $(sort $(shell find . -maxdepth 1 -type d -not -name '.' -not -name '.*' | sed 's|./||'))
+
 all: init
-	@stow --dotfiles -v emacs git kitty aws skk systemd tig tmux xmonad zsh x dbus
+	@stow --dotfiles -v $(PACKAGES)
 
 init:
 	@git submodule update --init --recursive
