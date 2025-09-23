@@ -1064,32 +1064,30 @@ unto itself.
           (progn (string-match-p pattern "") pattern)
         (invalid-regexp nil))))
 
-  ;;  (orderless-define-completion-style orderless-default-style
-  ;;    (orderless-matching-styles '(orderless-initialism
-  ;;				 orderless-literal
-  ;;				 orderless-regexp)))
+  (orderless-define-completion-style orderless-default-style
+    (orderless-matching-styles '(orderless-initialism
+				 orderless-literal
+				 orderless-regexp)))
 
-  ;;  (orderless-define-completion-style orderless-migemo-style
-  ;;    (orderless-matching-styles '(orderless-initialism
-  ;;				 orderless-literal
-  ;;				 orderless-regexp
-  ;;				 orderless-migemo)))
+  (orderless-define-completion-style orderless-migemo-style
+    (orderless-matching-styles '(orderless-initialism
+				 orderless-literal
+				 orderless-regexp
+				 orderless-migemo)))
 
-  ;;  (setq completion-category-overrides
-  ;;        '((command (styles orderless-default-style))
-  ;;          (file (styles orderless-migemo-style))
-  ;;          (buffer (styles orderless-migemo-style))
-  ;;          (symbol (styles orderless-default-style))
-  ;;          (consult-location (styles orderless-migemo-style))
-  ;;          (consult-multi (styles orderless-migemo-style))
-  ;;          (org-roam-node (styles orderless-migemo-style))
-  ;;          (unicode-name (styles orderless-migemo-style))
-  ;;          (variable (styles orderless-default-style))))
-  ;(setq orderless-matching-styles '(orderless-literal orderless-regexp orderless-migemo))
-  :custom
-  (completion-styles '(orderless basic))
-  (completion-category-overrides
-   '((file (styles basic partial-completion)))))
+  (add-to-list 'completion-styles 'orderless)
+
+  (setq completion-category-overrides
+        '((command (styles orderless-default-style))
+            (file (styles orderless-migemo-style))
+	    ; (file (styles basic partial-completion))
+            (buffer (styles orderless-migemo-style))
+            (symbol (styles orderless-default-style))
+            (consult-location (styles orderless-migemo-style))
+            (consult-multi (styles orderless-migemo-style))
+            (org-roam-node (styles orderless-migemo-style))
+            (unicode-name (styles orderless-migemo-style))
+            (variable (styles orderless-default-style)))))
 #+end_src
 
 *** vertico
@@ -1247,25 +1245,31 @@ unto itself.
 #+begin_src emacs-lisp
 (use-package lsp-mode
   ;:ensure t
+  :custom
+  (lsp-file-watch-threshold 99999)
+  (lsp-completion-provider :none) ;; we use Corfu!
   :init
   ;; set prefix for lsp-command-keymap (few alternatives - "C-l", "C-c l")
   (setq lsp-keymap-prefix "C-c l")
 
   ;; Set up before-save hooks to format buffer and add/delete imports.
   ;; Make sure you don't have other gofmt/goimports hooks enabled.
-  (defun lsp-go-install-save-hooks ()
+  (defun my/lsp-go-install-save-hooks ()
     (add-hook 'before-save-hook #'lsp-format-buffer t t)
     (add-hook 'before-save-hook #'lsp-organize-imports t t))
 
-  :hook ((go-ts-mode . lsp-deferred)
-	 (go-ts-mode . lsp-go-install-save-hooks)
+  (defun my/lsp-mode-setup-completion ()
+    (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults))
+          '(orderless))) ;; Configure orderless
+
+  :hook ((lsp-completion-mode . my/lsp-mode-setup-completion)
+	 (go-ts-mode . lsp-deferred)
+	 (go-ts-mode . my/lsp-go-install-save-hooks)
 	 (python-ts-mode . lsp-deferred)
-	 (python-ts-mode . lsp-go-install-save-hooks)
+	 (python-ts-mode . my/lsp-go-install-save-hooks)
          ;; if you want which-key integration
          (lsp-mode . lsp-enable-which-key-integration))
-  :commands (lsp lsp-deferred)
-  :config
-  (setq lsp-file-watch-threshold 1000))
+  :commands (lsp lsp-deferred))
 #+end_src
 
 **** lsp-ui
