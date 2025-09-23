@@ -286,3 +286,10 @@ cscope.po.out
 # End of https://www.gitignore.io/api/tags,macos,emacs,python,intellij
 
 **/.claude/settings.local.json
+
+**/CLAUDE.local.md
+
+emacs/dot-config/emacs/.dap-breakpoints
+emacs/dot-config/emacs/.lsp-session-v1
+emacs/dot-config/emacs/dap-ui-repl-go-history
+emacs/dot-config/emacs/projects
