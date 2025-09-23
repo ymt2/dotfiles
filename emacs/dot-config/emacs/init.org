@@ -1265,7 +1265,7 @@ unto itself.
   :hook ((lsp-completion-mode . my/lsp-mode-setup-completion)
 	 (go-ts-mode . lsp-deferred)
 	 (go-ts-mode . my/lsp-go-install-save-hooks)
-	 (python-ts-mode . lsp-deferred)
+	 ;(python-ts-mode . lsp-deferred)
 	 (python-ts-mode . my/lsp-go-install-save-hooks)
          ;; if you want which-key integration
          (lsp-mode . lsp-enable-which-key-integration))
