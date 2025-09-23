@@ -320,6 +320,33 @@ unto itself.
   (diff-hl-flydiff-mode))
 #+end_src
 
+** eat
+
+#+begin_src emacs-lisp
+(use-package eat
+  :vc (:url "http://codeberg.org/akib/emacs-eat" :rev :newest))
+#+end_src
+
+** eyebrowse
+
+#+begin_src emacs-lisp
+(use-package eyebrowse
+  :ensure t
+  ;:bind-keymap ("C-\\" . eyebrowse-mode-map)
+  ;:bind (:map eyebrowse-mode-map
+  ;            ("C-\\ C-\\" . eyebrowse-last-window-config)
+  ;            ("s-1" . eyebrowse-switch-to-window-config-1)
+  ;            ("s-2" . eyebrowse-switch-to-window-config-2)
+  ;            ("s-3" . eyebrowse-switch-to-window-config-3)
+  ;            ("s-4" . eyebrowse-switch-to-window-config-4))
+  :custom
+  ;(eyebrowse-keymap-prefix "�")
+  (eyebrowse-mode-line-separator " ")
+  (eyebrowse-new-workspace t)
+  :config
+  (eyebrowse-mode t))
+#+end_src
+
 ** highlight-indent-guides
 
 #+begin_src emacs-lisp
@@ -572,6 +599,131 @@ unto itself.
   (transient-values-file (user-data "transient/values.el")))
 #+end_src
 
+** treemacs
+
+#+begin_src emacs-lisp
+(use-package treemacs
+  :ensure t
+  :defer t
+  :commands treemacs)
+  ;:init
+  ;(with-eval-after-load 'winum
+  ;  (define-key winum-keymap (kbd "M-0") #'treemacs-select-window))
+  ;:config
+  ;(progn
+  ;  (setq treemacs-buffer-name-function            #'treemacs-default-buffer-name
+  ;        treemacs-buffer-name-prefix              " *Treemacs-Buffer-"
+  ;        treemacs-collapse-dirs                   (if treemacs-python-executable 3 0)
+  ;        treemacs-deferred-git-apply-delay        0.5
+  ;        treemacs-directory-name-transformer      #'identity
+  ;        treemacs-display-in-side-window          t
+  ;        treemacs-eldoc-display                   'simple
+  ;        treemacs-file-event-delay                2000
+  ;        treemacs-file-extension-regex            treemacs-last-period-regex-value
+  ;        treemacs-file-follow-delay               0.2
+  ;        treemacs-file-name-transformer           #'identity
+  ;        treemacs-follow-after-init               t
+  ;        treemacs-expand-after-init               t
+  ;        treemacs-find-workspace-method           'find-for-file-or-pick-first
+  ;        treemacs-git-command-pipe                ""
+  ;        treemacs-goto-tag-strategy               'refetch-index
+  ;        treemacs-header-scroll-indicators        '(nil . "^^^^^^")
+  ;        treemacs-hide-dot-git-directory          t
+  ;        treemacs-indentation                     2
+  ;        treemacs-indentation-string              " "
+  ;        treemacs-is-never-other-window           nil
+  ;        treemacs-max-git-entries                 5000
+  ;        treemacs-missing-project-action          'ask
+  ;        treemacs-move-files-by-mouse-dragging    t
+  ;        treemacs-move-forward-on-expand          nil
+  ;        treemacs-no-png-images                   nil
+  ;        treemacs-no-delete-other-windows         t
+  ;        treemacs-project-follow-cleanup          nil
+  ;        treemacs-persist-file                    (expand-file-name ".cache/treemacs-persist" user-emacs-directory)
+  ;        treemacs-position                        'left
+  ;        treemacs-read-string-input               'from-child-frame
+  ;        treemacs-recenter-distance               0.1
+  ;        treemacs-recenter-after-file-follow      nil
+  ;        treemacs-recenter-after-tag-follow       nil
+  ;        treemacs-recenter-after-project-jump     'always
+  ;        treemacs-recenter-after-project-expand   'on-distance
+  ;        treemacs-litter-directories              '("/node_modules" "/.venv" "/.cask")
+  ;        treemacs-project-follow-into-home        nil
+  ;        treemacs-show-cursor                     nil
+  ;        treemacs-show-hidden-files               t
+  ;        treemacs-silent-filewatch                nil
+  ;        treemacs-silent-refresh                  nil
+  ;        treemacs-sorting                         'alphabetic-asc
+  ;        treemacs-select-when-already-in-treemacs 'move-back
+  ;        treemacs-space-between-root-nodes        t
+  ;        treemacs-tag-follow-cleanup              t
+  ;        treemacs-tag-follow-delay                1.5
+  ;        treemacs-text-scale                      nil
+  ;        treemacs-user-mode-line-format           nil
+  ;        treemacs-user-header-line-format         nil
+  ;        treemacs-wide-toggle-width               70
+  ;        treemacs-width                           35
+  ;        treemacs-width-increment                 1
+  ;        treemacs-width-is-initially-locked       t
+  ;        treemacs-workspace-switch-cleanup        nil)
+  ;
+  ;  ;; The default width and height of the icons is 22 pixels. If you are
+  ;  ;; using a Hi-DPI display, uncomment this to double the icon size.
+  ;  ;;(treemacs-resize-icons 44)
+  ;
+  ;  (treemacs-follow-mode t)
+  ;  (treemacs-filewatch-mode t)
+  ;  (treemacs-fringe-indicator-mode 'always)
+  ;  (when treemacs-python-executable
+  ;    (treemacs-git-commit-diff-mode t))
+  ;
+  ;  (pcase (cons (not (null (executable-find "git")))
+  ;               (not (null treemacs-python-executable)))
+  ;    (`(t . t)
+  ;     (treemacs-git-mode 'deferred))
+  ;    (`(t . _)
+  ;     (treemacs-git-mode 'simple)))
+  ;
+  ;  (treemacs-hide-gitignored-files-mode nil))
+  ;:bind
+  ;(:map global-map
+  ;      ("M-0"       . treemacs-select-window)
+  ;      ("C-x t 1"   . treemacs-delete-other-windows)
+  ;      ("C-x t t"   . treemacs)
+  ;      ("C-x t d"   . treemacs-select-directory)
+  ;      ("C-x t B"   . treemacs-bookmark)
+  ;      ("C-x t C-t" . treemacs-find-file)
+  ;      ("C-x t M-t" . treemacs-find-tag)))
+
+;(use-package treemacs-evil
+;  :after (treemacs evil)
+;  :ensure t)
+;
+;(use-package treemacs-projectile
+;  :after (treemacs projectile)
+;  :ensure t)
+;
+;(use-package treemacs-icons-dired
+;  :hook (dired-mode . treemacs-icons-dired-enable-once)
+;  :ensure t)
+;
+;(use-package treemacs-magit
+;  :after (treemacs magit)
+;  :ensure t)
+;
+;(use-package treemacs-persp ;;treemacs-perspective if you use perspective.el vs. persp-mode
+;  :after (treemacs persp-mode) ;;or perspective vs. persp-mode
+;  :ensure t
+;  :config (treemacs-set-scope-type 'Perspectives))
+;
+;(use-package treemacs-tab-bar ;;treemacs-tab-bar if you use tab-bar-mode
+;  :after (treemacs)
+;  :ensure t
+;  :config (treemacs-set-scope-type 'Tabs))
+;
+;(treemacs-start-on-boot)
+#+end_src
+
 ** treesit
 
 #+begin_src emacs-lisp
@@ -734,7 +886,8 @@ unto itself.
   :bind (;; C-c bindings (mode-specific-map)
 	 ("C-c M-x" . consult-mode-command)
          ("C-c h"   . consult-history)
-         ("C-c K"   . consult-kmacro)
+         ("C-c k"   . consult-kmacro)
+	 ("C-c m"   . consult-man)
          ("C-c e i" . consult-info)
          ([remap Info-search] . consult-info)
 
@@ -748,18 +901,50 @@ unto itself.
          ("C-x b"   . consult-buffer)
 	 ;("C-x 4 b" . consult-buffer-other-window)
          ;("C-x 5 b" . consult-buffer-other-frame)
+	 ;("C-x t b" . consult-buffer-other-tab)    ;; orig. switch-to-buffer-other-tab
          ;("C-x r b" . consult-bookmark)
          ;("C-x 4 j" . consult-bookmark-other-window)
          ;("C-x p f" . project-find-file)
          ;("C-x p b" . consult-project-buffer)
+	 ;; Custom M-# bindings for fast register access
+	 ;("M-#" . consult-register-load)
+         ;("M-'" . consult-register-store)          ;; orig. abbrev-prefix-mark (unrelated)
+         ;("C-M-#" . consult-register)
 	 ;; Other custom bindings
          ("M-y"     . consult-yank-pop)
 	 ;; M-g bindings (goto-map)
          ("M-g e"   . consult-compile-error)
+	 ("M-g r" . consult-grep-match)
+	 ("M-g f" . consult-flymake)               ;; Alternative: consult-flycheck
          ("M-g g"   . consult-goto-line)
          ("M-g M-g" . consult-goto-line)
-         ("M-g l"   . consult-goto-line)
-         ([remap goto-line] . consult-goto-line)
+	 ([remap goto-line] . consult-goto-line)
+	 ("M-g o" . consult-outline)               ;; Alternative: consult-org-heading
+         ("M-g m" . consult-mark)
+         ("M-g k" . consult-global-mark)
+         ("M-g i" . consult-imenu)
+         ("M-g I" . consult-imenu-multi)
+         ;; M-s bindings in `search-map'
+         ("M-s d" . consult-find)                  ;; Alternative: consult-fd
+         ("M-s c" . consult-locate)
+         ("M-s g" . consult-grep)
+         ("M-s G" . consult-git-grep)
+         ("M-s r" . consult-ripgrep)
+	 ("M-g l" . consult-line)
+	 ("M-s L" . consult-line-multi)
+         ("M-s k" . consult-keep-lines)
+         ("M-s u" . consult-focus-lines)
+         ;; Isearch integration
+         ("M-s e" . consult-isearch-history)
+         :map isearch-mode-map
+         ("M-e" . consult-isearch-history)         ;; orig. isearch-edit-string
+         ("M-s e" . consult-isearch-history)       ;; orig. isearch-edit-string
+         ("M-s l" . consult-line)                  ;; needed by consult-line to detect isearch
+         ("M-s L" . consult-line-multi)            ;; needed by consult-line to detect isearch
+         ;; Minibuffer history
+         :map minibuffer-local-map
+         ("M-s" . consult-history)                 ;; orig. next-matching-history-element
+         ("M-r" . consult-history)
   ))
 #+end_src
 
@@ -988,6 +1173,7 @@ unto itself.
 
 #+begin_src emacs-lisp
 (use-package eglot
+  :disabled
   :ensure t
   :commands eglot
   :bind
@@ -1048,6 +1234,103 @@ unto itself.
   :mode "\\.graphqls?\\'")
 #+end_src
 
+*** json-ts-mode
+
+#+begin_src emacs-lisp
+(use-package json-ts-mode
+  :mode
+  ("\\.json\\'" . json-ts-mode))
+#+end_src
+
+*** lsp-mode
+
+#+begin_src emacs-lisp
+(use-package lsp-mode
+  ;:ensure t
+  :init
+  ;; set prefix for lsp-command-keymap (few alternatives - "C-l", "C-c l")
+  (setq lsp-keymap-prefix "C-c l")
+
+  ;; Set up before-save hooks to format buffer and add/delete imports.
+  ;; Make sure you don't have other gofmt/goimports hooks enabled.
+  (defun lsp-go-install-save-hooks ()
+    (add-hook 'before-save-hook #'lsp-format-buffer t t)
+    (add-hook 'before-save-hook #'lsp-organize-imports t t))
+
+  :hook ((go-ts-mode . lsp-deferred)
+	 (go-ts-mode . lsp-go-install-save-hooks)
+	 (python-ts-mode . lsp-deferred)
+	 (python-ts-mode . lsp-go-install-save-hooks)
+         ;; if you want which-key integration
+         (lsp-mode . lsp-enable-which-key-integration))
+  :commands (lsp lsp-deferred)
+  :config
+  (setq lsp-file-watch-threshold 1000))
+#+end_src
+
+**** lsp-ui
+
+#+begin_src emacs-lisp
+(use-package lsp-ui
+  ;:ensure t
+  :after (lsp-mode)
+  :commands lsp-ui-mode)
+#+end_src
+
+**** lsp-treemacs
+
+#+begin_src emacs-lisp
+(use-package lsp-treemacs
+  ;:ensure t
+  :after (lsp-mode)
+  :commands lsp-treemacs-errors-list)
+#+end_src
+
+**** dap-mode
+
+#+begin_src emacs-lisp
+(use-package dap-mode
+  :ensure t
+  :after (lsp-mode
+	  treemacs)
+  :custom
+  (dap-auto-configure-features '(sessions locals breakpoints expressions repl controls tooltip))
+  :config
+  (dap-mode 1)
+  (dap-auto-configure-mode 1))
+#+end_src
+
+***** dap-hydra
+
+#+begin_src emacs-lisp
+(use-package dap-hydra
+  :after dap-mode
+  :bind
+  ("C-c d" . dap-hydra/body))
+#+end_src
+
+***** dap-dlv-go
+
+#+begin_src emacs-lisp
+(use-package dap-dlv-go
+  :after dap-mode)
+#+end_src
+
+*** protobuf-mode
+
+#+begin_src emacs-lisp
+(use-package protobuf-mode
+  :ensure t
+  :mode "\\.proto\\'")
+#+end_src
+
+*** python-ts-mode
+
+#+begin_src emacs-lisp
+(use-package python-ts-mode
+  :mode ("\\.py$" . python-ts-mode))
+#+end_src
+
 *** YAML
 
 **** yaml-mode
@@ -1075,27 +1358,25 @@ unto itself.
   :ensure t)
 #+end_src
 
-** AI
+** gptel
 
-*** copilot-chat
+*** gptel
 
-#+begin_src emacs-lisp
-(use-package copilot-chat
-  :ensure)
-#+end_src
+TBU
 
-*** copilot-eglot
+*** claude-code-ide
 
 #+begin_src emacs-lisp
-(use-package copilot-language-server-eglot
-  :disabled
-  :no-require t
-  :demand t
-  :after (eglot)
+(use-package claude-code-ide
+  :vc (:url "https://github.com/manzaltu/claude-code-ide.el" :rev :newest)
+  ; :bind ("C-c C-'" . claude-code-ide-menu) ; Set your favorite keybinding
+  :bind ("C-x c c" . claude-code-ide-menu)
+  :custom
+  (claude-code-ide-cli-extra-flags "--model opus")
+  ;(claude-code-ide-cli-extra-flags "--model opus --dangerously-skip-permissions")
   :config
-  (add-to-list 'eglot-server-programs
-               '(go-ts-mode . ((concat (getenv "HOME")
-				     "/node_modules/@github/copilot-language-server/native/darwin-arm64/copilot-language-server") "--stdio"))))
+  (setq claude-code-ide-terminal-backend 'eat)
+  (claude-code-ide-emacs-tools-setup)) ; Optionally enable Emacs MCP tools
 #+end_src
 
 * Finalization
