@@ -572,6 +572,21 @@ unto itself.
   (savehist-mode 1))
 #+end_src
 
+** server
+
+#+begin_src emacs-lisp
+(use-package server
+  :unless (or noninteractive
+	      alternate-emacs)
+  :no-require
+  ;:config
+  ;(unless (file-exists-p "/tmp/main-emacs")
+  ;  (make-directory "/tmp/main-emacs")
+					;  (chmod "/tmp/main-emacs" 448))
+  ;(setq server-socket-dir "/tmp/main-emacs")
+  :hook (after-init . server-start))
+#+end_src
+
 ** smart-newline
 
 #+begin_src emacs-lisp
