@@ -1,4 +1,4 @@
-PROPERTIES:
+nPROPERTIES:
 :END:
 #+title: .emacs
 
@@ -160,7 +160,8 @@ unto itself.
   (variable-pitch ((t (:height 1.2 :family "Bookerly"))))
   ;:init
   :config
-  (define-key key-translation-map (kbd "C-h") (kbd "<DEL>")))
+  (define-key key-translation-map (kbd "C-h") (kbd "<DEL>"))
+  (setopt use-short-answers t))
 #+end_src
 
 ** autorevert
@@ -347,6 +348,32 @@ unto itself.
   (eyebrowse-mode t))
 #+end_src
 
+** free-keys
+
+#+begin_src emacs-lisp
+(use-package free-keys
+  :ensure t
+  :commands free-keys)
+#+end_src
+
+** ghub
+
+#+begin_src emacs-lisp
+(use-package ghub
+  :disabled
+  :after (forge auth-source-pass)
+  :config
+  ;(require 'auth-source-pass)
+  (defconst ghub-default-host "api.github.com")
+  (defvar my-ghub-token-cache nil)
+  (advice-add
+   'ghub--token :around
+   (lambda (orig-func host username package &optional nocreate forge)
+     (or my-ghub-token-cache
+         (setq my-ghub-token-cache
+               (funcall orig-func host username package nocreate forge))))))
+#+end_src
+
 ** highlight-indent-guides
 
 #+begin_src emacs-lisp
@@ -474,6 +501,42 @@ unto itself.
          ("C-x G" . magit-status-with-prefix)))
 #+end_src
 
+*** forge
+
+#+begin_src emacs-lisp
+(use-package forge
+  :ensure t
+  :after magit
+  :bind (:map forge-common-map
+              ("C-<return>")
+              ("C-," . forge-topic-menu))
+  :custom
+  (forge-database-file "~/.config/forge/database.sqlite")
+  (forge-owned-accounts '(("ymt2")))
+  :preface
+  (defun my-quick-create-pull-request (_title branch)
+    (interactive "sTitle: \nsBranch: ")
+    (setq branch (concat "johnw/" branch))
+    ;; Split this commit to another branch.
+    (magit-branch-spinoff branch)
+    ;; Push that branch to the remote.
+    (call-interactively #'magit-push-current-to-pushremote)
+    (sleep-for 3)
+    ;; Create a pullreq using the same title.
+    (forge-create-pullreq (concat "origin/" branch) "origin/main"))
+  :config
+  (transient-insert-suffix 'forge-dispatch "c i"
+    '("p" "quick-pr" my-quick-create-pull-request)))
+#+end_src
+
+*** magit-tbdiff
+
+#+begin_src emacs-lisp
+(use-package magit-tbdiff
+  :ensure t
+  :after magit)
+#+end_src
+
 ** migemo
 
 #+begin_src emacs-lisp
@@ -493,6 +556,30 @@ unto itself.
     ;; needs absolute path
     (setq migemo-dictionary (expand-file-name "~/scoop/apps/cmigemo/current/cmigemo-mingw64/share/migemo/utf-8/migemo-dict")))
   (migemo-init))
+#+end_src
+
+** operate-on-number
+
+#+begin_src emacs-lisp
+(use-package operate-on-number
+  :ensure t
+  :bind ("C-c N N" . operate-on-number-at-point))
+#+end_src
+
+** outline
+
+#+begin_src emacs-lisp
+(use-package outline
+  :diminish outline-minor-mode
+  :hook ((emacs-lisp-mode LaTeX-mode) . outline-minor-mode))
+#+end_src
+
+** outline-indent
+
+#+begin_src emacs-lisp
+(use-package outline-indent
+  :ensure t
+  :commands outline-indent-minor-mode)
 #+end_src
 
 ** org-mode
@@ -1391,7 +1478,7 @@ TBU
   ; :bind ("C-c C-'" . claude-code-ide-menu) ; Set your favorite keybinding
   :bind ("C-x c c" . claude-code-ide-menu)
   :custom
-  (claude-code-ide-cli-extra-flags "--model opus")
+  (claude-code-ide-cli-extra-flags "--model sonnet")
   ;(claude-code-ide-cli-extra-flags "--model opus --dangerously-skip-permissions")
   :config
   (setq claude-code-ide-terminal-backend 'eat)
