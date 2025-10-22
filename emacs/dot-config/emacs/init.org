@@ -1365,6 +1365,7 @@ unto itself.
           '(orderless))) ;; Configure orderless
 
   :hook ((lsp-completion-mode . my/lsp-mode-setup-completion)
+	 (protobuf-mode . lsp-deferred)
 	 (go-ts-mode . lsp-deferred)
 	 (go-ts-mode . my/lsp-go-install-save-hooks)
 	 ;(python-ts-mode . lsp-deferred)
@@ -1478,7 +1479,7 @@ TBU
   ; :bind ("C-c C-'" . claude-code-ide-menu) ; Set your favorite keybinding
   :bind ("C-x c c" . claude-code-ide-menu)
   :custom
-  (claude-code-ide-cli-extra-flags "--model sonnet")
+  (claude-code-ide-cli-extra-flags "--model opus")
   ;(claude-code-ide-cli-extra-flags "--model opus --dangerously-skip-permissions")
   :config
   (setq claude-code-ide-terminal-backend 'eat)
