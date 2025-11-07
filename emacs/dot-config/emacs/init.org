@@ -981,6 +981,49 @@ unto itself.
 
 ** Completions
 
+*** embark
+
+#+begin_src emacs-lisp
+(use-package embark
+  :ensure t
+  :bind (("M-."   . embark-act)
+         ("C-M-." . embark-act-all)
+         ("C-h b" . embark-bindings) ;; alternative for `describe-bindings'
+         ("C-c v" . embark-dwim)
+         :map embark-collect-mode-map
+         ("C-c C-a" . embark-collect-direct-action-minor-mode))
+  :custom
+  (embark-indicators
+   '(embark-minimal-indicator
+     embark-highlight-indicator
+     embark-isearch-highlight-indicator))
+  :init
+  ;; Optionally replace the key help with a completing-read interface
+  (setq prefix-help-command #'embark-prefix-help-command)
+
+  ;; Show the Embark target at point via Eldoc.  You may adjust the Eldoc
+  ;; strategy, if you want to see the documentation from multiple providers.
+  (add-hook 'eldoc-documentation-functions #'embark-eldoc-first-target)
+
+  ;; (setq eldoc-documentation-strategy #'eldoc-documentation-compose-eagerly)
+  :config
+  ;; Hide the mode line of the Embark live/completions buffers
+  (add-to-list 'display-buffer-alist
+               '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
+                 nil
+                 (window-parameters (mode-line-format . none)))))
+#+end_src
+
+**** embark-consult
+
+#+begin_src emacs-lisp
+(use-package embark-consult
+  :ensure t
+  :after (consult embark)
+  :hook
+  (embark-collect-mode . consult-preview-at-point-mode))
+#+end_src
+
 *** consult
 
 #+begin_src emacs-lisp
