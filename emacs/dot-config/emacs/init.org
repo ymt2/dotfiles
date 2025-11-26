@@ -160,7 +160,7 @@ unto itself.
   (variable-pitch ((t (:height 1.2 :family "Bookerly"))))
   ;:init
   :config
-  (define-key key-translation-map (kbd "C-h") (kbd "<DEL>"))
+  (define-key key-translation-map [?\C-h] [?\C-?])
   (setopt use-short-answers t))
 #+end_src
 
@@ -321,11 +321,42 @@ unto itself.
   (diff-hl-flydiff-mode))
 #+end_src
 
+** dired
+
+#+begin_src emacs-lisp
+(use-package dired)
+#+end_src
+
+*** dired-follow
+
+#+begin_src emacs-lisp
+(use-package dired-follow
+  :no-require t
+  :after dired
+  :demand t
+  :hook
+  (dired-mode
+   . (lambda () (bind-key "F" #'dired-follow-mode dired-mode-map)))
+  :preface
+  (defun do-dired-display-file (_)
+    (dired-display-file))
+  :config
+  (define-minor-mode dired-follow-mode
+    "Diplay file at point in dired after a move."
+    :lighter " dired-f"
+    :global t
+    :group 'dired
+    (if dired-follow-mode
+        (advice-add 'dired-next-line :after #'do-dired-display-file)
+      (advice-remove 'dired-next-line #'do-dired-display-file))))
+#+end_src
+
 ** eat
 
 #+begin_src emacs-lisp
 (use-package eat
-  :vc (:url "http://codeberg.org/akib/emacs-eat" :rev :newest))
+  :ensure t
+  :hook (eshell-load . eat-eshell-mode))
 #+end_src
 
 ** eyebrowse
@@ -869,6 +900,32 @@ unto itself.
 (use-package uniquify
   :custom
   (uniquify-buffer-name-style 'post-forward-angle-brackets))
+#+end_src
+
+** vterm
+
+macOS requirements: ~brew install cmake libvterm libtool~
+
+#+begin_src emacs-lisp
+(use-package vterm
+  :defer t)
+#+end_src
+
+*** multi-vterm
+
+#+begin_src emacs-lisp
+(use-package multi-vterm
+  :defer t)
+#+end_src
+
+
+*** vterm-toggle
+
+#+begin_src emacs-lisp
+(use-package vterm-toggle
+  :defer t
+  :custom
+  (vterm-toggle-scope 'project))
 #+end_src
 
 ** vundo
@@ -1521,11 +1578,10 @@ TBU
   :vc (:url "https://github.com/manzaltu/claude-code-ide.el" :rev :newest)
   ; :bind ("C-c C-'" . claude-code-ide-menu) ; Set your favorite keybinding
   :bind ("C-x c c" . claude-code-ide-menu)
-  :custom
-  (claude-code-ide-cli-extra-flags "--model opus")
+  ;:custom
   ;(claude-code-ide-cli-extra-flags "--model opus --dangerously-skip-permissions")
   :config
-  (setq claude-code-ide-terminal-backend 'eat)
+  (setq claude-code-terminal-backend 'vterm) ; 'eat
   (claude-code-ide-emacs-tools-setup)) ; Optionally enable Emacs MCP tools
 #+end_src
 
