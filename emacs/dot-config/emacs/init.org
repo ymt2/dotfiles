@@ -45,11 +45,25 @@ gc-cons-threshold (* 128 1024 1024))
 
 (require 'use-package)
 
-(setq use-package-verbose t ;; init-file-debug
-      use-package-expand-minimally nil ;; (not init-file-debug)
-      use-package-compute-statistics t ;; init-file-debug
-      debug-on-error init-file-debug
-      debug-on-quit init-file-debug)
+(let ((verbose (or nil init-file-debug)))
+  (setq use-package-verbose verbose
+        use-package-expand-minimally (not verbose)
+        use-package-compute-statistics verbose
+        debug-on-error verbose
+        debug-on-message "buffer-local while locally let-bound"
+        debug-on-quit verbose))
+#+end_src
+
+*** exec-path-from-shell
+
+#+begin_src emacs-lisp
+(use-package exec-path-from-shell
+  :ensure t
+  :if (memq window-system '(mac ns x))
+  :config
+  (exec-path-from-shell-initialize)
+  ;; (exec-path-from-shell-copy-env "OPENAI_API_KEY")
+  )
 #+end_src
 
 ** During loading of this module, clear =file-name-handler-alist=
@@ -356,7 +370,10 @@ unto itself.
 #+begin_src emacs-lisp
 (use-package eat
   :ensure t
-  :hook (eshell-load . eat-eshell-mode))
+  :hook ((eshell-load . eat-eshell-mode)
+	 (eshell-load . eat-eshell-visual-command-mode))
+  :custom
+  (eat-term-name "xterm-256color"))
 #+end_src
 
 ** eyebrowse
@@ -1179,14 +1196,28 @@ macOS requirements: ~brew install cmake libvterm libtool~
 #+begin_src emacs-lisp
 (use-package corfu
   :ensure t
+  :hook (eshell-mode . (lambda ()
+			 (setq-local corfu-auto nil)
+			 (corfu-mode)))
   :custom
   (corfu-auto t)
   (corfu-cycle t)
+  ; (keymap-set corfu-map "RET" #'corfu-send)
   :bind (:map corfu-map
 	      ("SPC" . corfu-insert-separator)
 	      ("TAB" . corfu-next))
   :init
   (global-corfu-mode))
+#+end_src
+
+**** corfu-candidate-overlay
+
+#+begin_src emacs-lisp
+(use-package corfu-candidate-overlay
+  :ensure t
+  :after corfu
+  :config
+  (corfu-candidate-overlay-mode +1))
 #+end_src
 
 **** corfu-popup
@@ -1290,6 +1321,50 @@ macOS requirements: ~brew install cmake libvterm libtool~
             (org-roam-node (styles orderless-migemo-style))
             (unicode-name (styles orderless-migemo-style))
             (variable (styles orderless-default-style)))))
+#+end_src
+
+*** tempel
+
+#+begin_src emacs-lisp
+(use-package tempel
+  :ensure t
+  :bind (("M-+" . tempel-complete) ;; Alternative tempel-expand
+         ("M-*" . tempel-insert))
+  :hook ((conf-mode . tempel-setup-capf)
+	 ;(prog-mode . tempel-setup-capf)
+	 (text-mode . tempel-setup-capf))
+  :init
+  ;; Setup completion at point
+  (defun tempel-setup-capf ()
+    ;; Add the Tempel Capf to `completion-at-point-functions'.  `tempel-expand'
+    ;; only triggers on exact matches. We add `tempel-expand' *before* the main
+    ;; programming mode Capf, such that it will be tried first.
+    (setq-local completion-at-point-functions
+		(cons #'tempel-expand completion-at-point-functions))
+
+
+    ;; Alternatively use `tempel-complete' if you want to see all matches.  Use
+    ;; a trigger prefix character in order to prevent Tempel from triggering
+    ;; unexpectly.
+    ;; (setq-local corfu-auto-trigger "/"
+    ;;             completion-at-point-functions
+    ;;             (cons (cape-capf-trigger #'tempel-complete ?/)
+    ;;                   completion-at-point-functions))
+  )
+
+  ;; Optionally make the Tempel templates available to Abbrev,
+  ;; either locally or globally. `expand-abbrev' is bound to C-x '.
+  ;; (add-hook 'prog-mode-hook #'tempel-abbrev-mode)
+  ;; (global-tempel-abbrev-mode)
+)
+#+end_src
+
+**** tempel-collection
+
+#+begin_src emacs-lisp
+(use-package tempel-collection
+  :ensure t
+  :after tempel)
 #+end_src
 
 *** vertico
@@ -1479,9 +1554,27 @@ macOS requirements: ~brew install cmake libvterm libtool~
 
 #+begin_src emacs-lisp
 (use-package lsp-ui
-  ;:ensure t
   :after (lsp-mode)
-  :commands lsp-ui-mode)
+  :bind (([remap xref-find-definitions] . lsp-ui-peek-find-definitions)
+	 ([remap xref-find-references] . lsp-ui-peek-find-references))
+  :custom
+  ;; lsp-ui-sideline
+  (lsp-ui-sideline-show-diagnostics t)
+  (lsp-ui-sideline-show-hover t)
+  (lsp-ui-sideline-show-code-actions t)
+  ; (lsp-ui-sideline-update-mode t)
+  ; (lsp-ui-sideline-delay )
+  ; (lsp-ui-sideline-diagnostic-max-lines )
+
+  ;; lsp-ui-peek
+  (lsp-ui-peek-enable t)
+
+  ;; lsp-ui-doc
+  (lsp-ui-doc-show-with-cursor t)
+  (lsp-ui-doc-show-with-mouse t)
+
+  ;; lsp-ui-imenu
+  (lsp-ui-imenu-auto-refresh t))
 #+end_src
 
 **** lsp-treemacs
