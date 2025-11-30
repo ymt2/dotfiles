@@ -344,7 +344,11 @@ unto itself.
 
 #+begin_src emacs-lisp
 (use-package eshell
-  :commands (eshell eshell-command))
+  :ensure nil
+  :defer t
+  :commands (eshell eshell-command)
+  :custom
+  (eshell-scroll-to-bottom-on-input t))
 #+end_src
 
 *** eshell-git-prompt
@@ -531,6 +535,19 @@ unto itself.
   :commands indent-according-to-mode
   :custom
   (tab-always-indent 'complete))
+#+end_src
+
+** kind-icon
+
+#+begin_src emacs-lisp
+(use-package kind-icon
+  :ensure t
+  :after corfu
+  ;:custom
+  ; (kind-icon-blend-background t)
+  ; (kind-icon-default-face 'corfu-default) ; only needed with blend-background
+  :config
+  (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
 #+end_src
 
 ** magit
