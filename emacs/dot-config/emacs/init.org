@@ -372,6 +372,19 @@ unto itself.
   (eshell-syntax-highlighting-global-mode +1))
 #+end_src
 
+*** eshell-toggle
+
+#+begin_src emacs-lisp
+(use-package eshell-toggle
+  :ensure t
+  :bind ("C-x C-z" . eshell-toggle)
+  :custom
+  (eshell-toggle-size-fraction 3)
+  (eshell-toggle-find-project-root-package t)
+  (eshell-toggle-run-command nil)
+  (eshell-toggle-init-function #'eshell-toggle-init-eshell))
+#+end_src
+
 ** eyebrowse
 
 #+begin_src emacs-lisp
@@ -1158,7 +1171,7 @@ macOS requirements: ~brew install cmake libvterm libtool~
   ;; Finally, load your theme of choice (or a random one with
   ;; `modus-themes-load-random', `modus-themes-load-random-dark',
   ;; `modus-themes-load-random-light').
-  (modus-themes-load-theme 'ef-night))
+  (modus-themes-load-theme 'ef-winter))
 #+end_src
 
 ** Completions
