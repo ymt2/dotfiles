@@ -347,6 +347,8 @@ unto itself.
   :ensure nil
   :defer t
   :commands (eshell eshell-command)
+  :bind (:map eshell-mode-map
+	      ("C-r" . consult-history))
   :custom
   (eshell-scroll-to-bottom-on-input t))
 #+end_src
