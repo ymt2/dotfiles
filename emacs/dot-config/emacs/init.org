@@ -225,6 +225,74 @@ unto itself.
   )
 #+end_src
 
+** casual
+
+#+begin_src emacs-lisp
+(use-package casual
+  :ensure t
+  :init
+  (require 'casual-ediff)
+  (casual-ediff-install)
+  :config
+  (require 'casual-calc)
+  (require 'casual-compile)
+  (require 'casual-dired)
+  (require 'casual-eshell)
+  (require 'casual-ibuffer)
+  (require 'casual-isearch)
+  (require 'casual-re-builder)
+  :bind (; calc
+	 (:map calc-mode-map
+	       ("C-o" . 'casual-calc-tmenu))
+	 (:map calc-alg-map
+	       ("C-o" . 'casual-calc-tmenu))
+	 ; compile
+	 (:map compilation-mode-map
+	       ("C-o" . 'casual-compile-tmenu))
+	 ; dired
+	 (:map dired-mode-map
+               ("C-o" . 'casual-dired-tmenu)
+               ("s"   . 'casual-dired-sort-by-tmenu)
+               ("/"   . 'casual-dired-search-replace-tmenu))
+	 ; eshell
+	 (:map eshell-mode-map
+	       ("C-o" . 'casual-eshell-tmenu))
+	 ; ibuffer
+	 (:map ibuffer-mode-map
+               ("C-o" . 'casual-ibuffer-tmenu)
+               ("F"   . 'casual-ibuffer-filter-tmenu)
+               ("s"   . 'casual-ibuffer-sortby-tmenu))
+	 ; isearch
+	 (:map isearch-mode-map
+	       ("C-o" . 'casual-isearch-tmenu))
+	 ; re-builder
+	 (:map reb-mode-map
+	       ("C-o" . 'casual-re-builder-tmenu))
+	 (:map reb-lisp-mode-map
+	       ("C-o" . 'casual-re-builder-tmenu)))
+  :hook (ediff-keymap-setup . (lambda ()
+            (keymap-set ediff-mode-map "C-o" #'casual-ediff-tmenu))))
+#+end_src
+
+*** casual-avy
+
+#+begin_src emacs-lisp
+(use-package casual-avy
+  :ensure t
+  :after (casual avy))
+#+end_src
+
+*** casual-symbol-overlay
+
+#+begin_src emacs-lisp
+(use-package casual-symbol-overlay
+  :ensure t
+  :after (casual
+	  symbol-overlay)
+  :bind (:map symbol-overlay-map
+	      ("C-o" . 'casual-symbol-overlay-tmenu)))
+#+end_src
+
 ** compile
 
 #+begin_src emacs-lisp
@@ -461,6 +529,7 @@ unto itself.
 
 #+begin_src emacs-lisp
 (use-package ibuffer
+  :ensure nil
   :bind ("C-x C-b" . ibuffer)
   :custom
   (ibuffer-default-display-maybe-show-predicates t)
@@ -558,11 +627,20 @@ unto itself.
 
 #+begin_src emacs-lisp
 (use-package ibuffer-project
+  :disabled
   :ensure t
   :hook (ibuffer-hook . (lambda ()
 			  (setq ibuffer-filter-groups (ibuffer-project-generate-filter-groups))
 			  (unless (eq ibuffer-sorting-mode 'project-file-relative)
 			    (ibuffer-do-sort-by-project-file-relative)))))
+#+end_src
+
+*** all-the-icons-ibuffer
+
+#+begin_src emacs-lisp
+(use-package all-the-icons-ibuffer
+  :ensure t
+  :hook (ibuffer-mode . all-the-icons-ibuffer-mode))
 #+end_src
 
 ** indent
@@ -767,6 +845,14 @@ unto itself.
   :hook (prog-mode . rainbow-delimiters-mode))
 #+end_src
 
+** re-builder
+
+#+begin_src emacs-lisp
+(use-package re-builder
+  :bind (("C-c R" . re-builder))
+  :config (setq reb-re-syntax 'string))
+#+end_src
+
 ** savehist
 
 #+begin_src emacs-lisp
@@ -824,6 +910,14 @@ unto itself.
   :commands smartparens-mode
   :custom
   (sp-highlight-pair-overlay nil))
+#+end_src
+
+** symbol-overlay
+
+#+begin_src emacs-lisp	
+(use-package symbol-overlay
+  :ensure t
+  :bind ("M-i" . symbol-overlay-put))
 #+end_src
 
 ** transient
@@ -1831,7 +1925,7 @@ TBU
   ;:custom
   ;(claude-code-ide-cli-extra-flags "--model opus --dangerously-skip-permissions")
   :config
-  (setq claude-code-terminal-backend 'vterm) ; 'eat
+  (setq claude-code-terminal-backend 'eat)
   (claude-code-ide-emacs-tools-setup)) ; Optionally enable Emacs MCP tools
 #+end_src
 
