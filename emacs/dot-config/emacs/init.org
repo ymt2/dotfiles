@@ -225,15 +225,22 @@ unto itself.
   )
 #+end_src
 
+** bookmark
+
+#+begin_src emacs-lisp
+(use-package bookmark
+  :bind
+  ("<f4>" . (lambda () (interactive) (bookmark-set "SAVED")))
+  ("<f1>" . (lambda () (interactive) (bookmark-jump "SAVED"))))
+#+end_src
+
 ** casual
 
 #+begin_src emacs-lisp
 (use-package casual
   :ensure t
-  :init
-  (require 'casual-ediff)
-  (casual-ediff-install)
   :config
+  (require 'casual-bookmarks)
   (require 'casual-calc)
   (require 'casual-compile)
   (require 'casual-dired)
@@ -241,7 +248,17 @@ unto itself.
   (require 'casual-ibuffer)
   (require 'casual-isearch)
   (require 'casual-re-builder)
-  :bind (; calc
+
+  (require 'casual-ediff)
+  (casual-ediff-install)
+  (add-hook 'ediff-keymap-setup-hook
+          (lambda ()
+            (keymap-set ediff-mode-map "C-o" #'casual-ediff-tmenu)))
+  :bind (; bookmark
+	 (:map bookmark-bmenu-mode-map
+	       ("C-o" . 'casual-bookmarks-tmenu)
+	       ("J"   . 'bookmark-jump))
+	 ; calc
 	 (:map calc-mode-map
 	       ("C-o" . 'casual-calc-tmenu))
 	 (:map calc-alg-map
@@ -269,9 +286,7 @@ unto itself.
 	 (:map reb-mode-map
 	       ("C-o" . 'casual-re-builder-tmenu))
 	 (:map reb-lisp-mode-map
-	       ("C-o" . 'casual-re-builder-tmenu)))
-  :hook (ediff-keymap-setup . (lambda ()
-            (keymap-set ediff-mode-map "C-o" #'casual-ediff-tmenu))))
+	       ("C-o" . 'casual-re-builder-tmenu))))
 #+end_src
 
 *** casual-avy
@@ -429,15 +444,30 @@ unto itself.
   :bind (:map eshell-mode-map
       	      ("C-r" . consult-history))
   :custom
-  (eshell-scroll-to-bottom-on-input t))
+  (eshell-scroll-to-bottom-on-input t)
+  :config
+  (defun eshell/g (&rest args)
+    "Call magit without args, or git with args."
+    (if args
+        (eshell-command-result (concat "git " (string-join (mapcar #'shell-quote-argument args) " ")))
+      (magit-status))))
+#+end_src
+
+*** eshell-bookmark
+
+#+begin_src emacs-lisp
+(use-package eshell-bookmark
+  :ensure t
+  :after eshell
+  :hook (eshell-mode . eshell-bookmark-setup))
 #+end_src
 
 *** eshell-git-prompt
 
 #+begin_src emacs-lisp
 (use-package eshell-git-prompt
-  :after eshell
   :ensure t
+  :after eshell
   :config
   (eshell-git-prompt-use-theme 'powerline))
 #+end_src
@@ -446,8 +476,8 @@ unto itself.
 
 #+begin_src emacs-lisp
 (use-package eshell-syntax-highlighting
-  :after eshell
   :ensure t
+  :after eshell
   :config
   ;; Enable in all Eshell buffers.
   (eshell-syntax-highlighting-global-mode +1))
@@ -1372,7 +1402,7 @@ macOS requirements: ~brew install cmake libvterm libtool~
 	 ;("C-x 4 b" . consult-buffer-other-window)
          ;("C-x 5 b" . consult-buffer-other-frame)
 	 ;("C-x t b" . consult-buffer-other-tab)    ;; orig. switch-to-buffer-other-tab
-         ;("C-x r b" . consult-bookmark)
+         ("C-x r b" . consult-bookmark)
          ;("C-x 4 j" . consult-bookmark-other-window)
          ;("C-x p f" . project-find-file)
          ;("C-x p b" . consult-project-buffer)
@@ -1467,8 +1497,8 @@ macOS requirements: ~brew install cmake libvterm libtool~
 (use-package corfu-candidate-overlay
   :ensure t
   :after corfu
-  :config
-  (corfu-candidate-overlay-mode +1))
+  :hook (eshell-mode . (lambda ()
+			 (setq-local corfu-candidate-overlay-mode +1))))
 #+end_src
 
 **** corfu-popup
@@ -1805,6 +1835,7 @@ macOS requirements: ~brew install cmake libvterm libtool~
 
 #+begin_src emacs-lisp
 (use-package lsp-ui
+  :ensure t
   :after (lsp-mode)
   :bind (([remap xref-find-definitions] . lsp-ui-peek-find-definitions)
 	 ([remap xref-find-references] . lsp-ui-peek-find-references))
@@ -1922,10 +1953,10 @@ TBU
   :vc (:url "https://github.com/manzaltu/claude-code-ide.el" :rev :newest)
   ; :bind ("C-c C-'" . claude-code-ide-menu) ; Set your favorite keybinding
   :bind ("C-x c c" . claude-code-ide-menu)
-  ;:custom
+  :custom
   ;(claude-code-ide-cli-extra-flags "--model opus --dangerously-skip-permissions")
+  (claude-code-ide-terminal-backend 'eat)
   :config
-  (setq claude-code-terminal-backend 'eat)
   (claude-code-ide-emacs-tools-setup)) ; Optionally enable Emacs MCP tools
 #+end_src
 
