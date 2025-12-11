@@ -444,13 +444,7 @@ unto itself.
   :bind (:map eshell-mode-map
       	      ("C-r" . consult-history))
   :custom
-  (eshell-scroll-to-bottom-on-input t)
-  :config
-  (defun eshell/g (&rest args)
-    "Call magit without args, or git with args."
-    (if args
-        (eshell-command-result (concat "git " (string-join (mapcar #'shell-quote-argument args) " ")))
-      (magit-status))))
+  (eshell-scroll-to-bottom-on-input t))
 #+end_src
 
 *** eshell-bookmark
