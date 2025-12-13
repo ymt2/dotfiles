@@ -443,6 +443,9 @@ unto itself.
   :commands (eshell eshell-command)
   :bind (:map eshell-mode-map
       	      ("C-r" . consult-history))
+  :hook (eshell-mode . (lambda ()
+			 (setq-local dnd-protocol-alist
+				     '(("^file:" . my/dnd-insert-file-path)))))
   :custom
   (eshell-scroll-to-bottom-on-input t))
 #+end_src
@@ -837,7 +840,7 @@ unto itself.
 #+begin_src emacs-lisp
 (use-package personal
   :demand t
-  :bind (("C-a" . beginning-of-line-or-indentation)))
+  :bind (("C-a" . my/beginning-of-line-or-indentation)))
 #+end_src
 
 ** projectile
