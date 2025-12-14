@@ -442,10 +442,23 @@ unto itself.
   :defer t
   :commands (eshell eshell-command)
   :bind (:map eshell-mode-map
-      	      ("C-r" . consult-history))
+	      ("C-r" . consult-history))
   :hook (eshell-mode . (lambda ()
 			 (setq-local dnd-protocol-alist
-				     '(("^file:" . my/dnd-insert-file-path)))))
+				     '(("^file:" . my/dnd-insert-file-path)))
+			 (setq-local eshell-visual-commands
+				     (append '("top" "htop" "aptitude" "mutt"
+					       "nano" "crontab" "vim" "less" "zile")
+					     eshell-visual-commands))
+			 (setq-local eshell-visual-subcommands
+				     (list (append '("sudo") eshell-visual-commands)
+					   '("git" "log" "diff" "show" "grep"
+					     "commit" "rebase" "pull" "push")
+					   '("g" "log" "diff" "show" "grep"
+					     "commit" "rebase" "pull" "push")
+					   '("multipass", "shell")))
+			 (setq-local eshell-visual-options
+				     '(("git" "--help" "--paginate")))))
   :custom
   (eshell-scroll-to-bottom-on-input t))
 #+end_src
