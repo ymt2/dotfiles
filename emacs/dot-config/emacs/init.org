@@ -176,7 +176,14 @@ unto itself.
   ;:init
   :config
   (define-key key-translation-map [?\C-h] [?\C-?])
-  (setopt use-short-answers t))
+  (setopt use-short-answers t)
+
+  ;; Setup keymaps that are bound into by many declarations below.
+  (eval-and-compile
+    (mapc (lambda (entry)
+            (define-prefix-command (cdr entry))
+            (bind-key (car entry) (cdr entry)))
+	  '(("C-c n" . my-ctrl-c-n-map)))))
 #+end_src
 
 ** autorevert
@@ -846,6 +853,27 @@ unto itself.
   (org-mode . turn-on-auto-fill)
   :custom
   (org-edit-src-content-indentation 0))
+#+end_src
+
+*** org-roam
+
+#+begin_src emacs-lisp
+(use-package org-roam
+  :ensure t
+  :after org
+  :bind (:map
+	 my-ctrl-c-n-map
+	 ("B" . org-roam-buffer-toggle)
+	 ("f" . org-roam-node-find)
+	 ("i" . org-roam-node-insert)
+	 ("t" . org-roam-tag-add))
+  :custom
+  (org-roam-directory (file-truename "~/Dropbox/org/roam"))
+  (org-roam-node-display-template
+   (concat "${title:*} "
+           (propertize "${tags:*}" 'face 'org-tag)))
+  :config
+  (org-roam-db-autosync-mode))
 #+end_src
 
 ** personal

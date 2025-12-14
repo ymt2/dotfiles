@@ -3,6 +3,7 @@
 .zshrc.local
 
 emacs/dot-config/emacs/init.el
+emacs/dot-config/emacs/org-roam.db
 emacs/dot-config/emacs/data/
 emacs/dot-config/emacs/eln-cache/
 emacs/dot-config/emacs/elpa/
