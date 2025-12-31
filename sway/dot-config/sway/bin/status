@@ -1,7 +1,48 @@
 #!/usr/bin/env sh
 
-date=$(date +'%Y-%m-%d %X')
+NIC="wlan0"
 
-battery=$(cat /sys/class/power_supply/BAT0/capacity)
+RX_FILE="/tmp/sway_rx_$USER"
+TX_FILE="/tmp/sway_tx_$USER"
 
-echo [$battery%] [$date]
+# ネットワーク統計を取得
+if [ -d "/sys/class/net/$NIC" ]; then
+    RX_NEW=$(cat /sys/class/net/$NIC/statistics/rx_bytes)
+    TX_NEW=$(cat /sys/class/net/$NIC/statistics/tx_bytes)
+
+    # 前回の値を読み込み
+    if [ -f "$RX_FILE" ] && [ -f "$TX_FILE" ]; then
+        RX_OLD=$(cat "$RX_FILE")
+        TX_OLD=$(cat "$TX_FILE")
+
+        # オーバーフロー対策（インターフェースがリセットされた場合など）
+        if [ "$RX_NEW" -ge "$RX_OLD" ] && [ "$TX_NEW" -ge "$TX_OLD" ]; then
+            # 速度を計算（KB/s）
+            RX_RATE=$(((RX_NEW - RX_OLD) / 1024))
+            TX_RATE=$(((TX_NEW - TX_OLD) / 1024))
+            NET_STATUS="↓${RX_RATE}KB/s ↑${TX_RATE}KB/s"
+        else
+            # リセットされた場合は初期化
+            NET_STATUS="NET: --"
+        fi
+    else
+        # 初回実行
+        NET_STATUS="NET: --"
+    fi
+
+    # 現在の値を保存
+    echo "$RX_NEW" > "$RX_FILE"
+    echo "$TX_NEW" > "$TX_FILE"
+else
+    NET_STATUS="NET: down"
+    # インターフェースがない場合はファイルを削除
+    rm -f "$RX_FILE" "$TX_FILE"
+fi
+
+# バッテリー
+BATTERY=$(cat /sys/class/power_supply/BAT0/capacity 2> /dev/null || echo "?")
+
+# 日時
+DATE=$(date +'%Y-%m-%d %X')
+
+echo "[$NET_STATUS]" "[$BATTERY%]" "[$DATE]"
