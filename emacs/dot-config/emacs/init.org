@@ -792,6 +792,7 @@ unto itself.
 #+begin_src emacs-lisp
 (use-package migemo
   :load-path "lisp/migemo"
+  :if (executable-find "cmigemo")
   :config
   (setq migemo-command "cmigemo"
         migemo-options '("-q" "-e")
