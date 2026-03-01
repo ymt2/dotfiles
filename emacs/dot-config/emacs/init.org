@@ -149,6 +149,17 @@ gc-cons-threshold (* 128 1024 1024))
   (put 'epg-gpg-program 'customized-value t))
 #+end_src
 
+** auth-souce
+
+#+begin_src emacs-lisp
+(use-package auth-source
+  :ensure nil
+  :config
+  (when (string= system-type "darwin")
+    (add-to-list 'auth-sources 'macos-keychain-internet)
+    (add-to-list 'auth-sources 'macos-keychain-generic)))
+#+end_src
+
 ** emacs
 
 This pseudo-package represents Emacs itself, and configures many variables and
@@ -193,7 +204,8 @@ unto itself.
 #+begin_src emacs-lisp
 (use-package agent-shell
   :ensure t
-  :commands (agent-shell-anthropic-start-claude-code))
+  :commands (agent-shell-anthropic-start-claude-code
+	     agent-shell-google-start-gemini))
 #+end_src
 
 ** autorevert
@@ -350,8 +362,7 @@ unto itself.
 
 #+begin_src emacs-lisp
 (use-package compile
-  :bind (("C-c c" . compile)
-         ("M-O"   . show-compilation))
+  :bind (("M-O"   . show-compilation))
   :bind (:map compilation-mode-map
               ("z" . delete-window))
   :hook (compilation-filter . compilation-ansi-color-process-output)
@@ -457,7 +468,9 @@ unto itself.
   :ensure t
   ;; Replace `project-prefix-map' with `disproject-dispatch'.
   :bind (:map ctl-x-map
-	      ("p" . disproject-dispatch)))
+	      ("p" . disproject-dispatch))
+  :custom
+  (disproject-shell-command #'eat-project))
 #+end_src
 
 ** eat
@@ -564,10 +577,8 @@ unto itself.
 
 #+begin_src emacs-lisp
 (use-package ghub
-  :disabled
-  :after (forge auth-source-pass)
+  :after (forge)
   :config
-  ;(require 'auth-source-pass)
   (defconst ghub-default-host "api.github.com")
   (defvar my-ghub-token-cache nil)
   (advice-add
@@ -2030,6 +2041,12 @@ TBU
   ;; optional IDE integration with Monet
   (add-hook 'claude-code-process-environment-functions #'monet-start-server-function)
   (monet-mode 1)
+
+  (add-to-list 'display-buffer-alist
+	       '("^\\*claude"
+                 (display-buffer-in-side-window)
+                 (side . right)
+                 (window-width . 90)))
 
   (claude-code-mode)
   :bind-keymap ("C-c c" . claude-code-command-map)
