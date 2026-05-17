@@ -98,6 +98,13 @@ gc-cons-threshold (* 128 1024 1024))
 
 (defun user-data (dir)
   (expand-file-name dir user-data-directory))
+
+(defconst my/org-roam-directory (file-truename "~/SynologyDrive/home/org"))
+
+(defconst my/emacs-server-directory
+  (expand-file-name "emacs/server"
+                    (or (getenv "XDG_CACHE_HOME") "~/.cache"))
+  "Directory for Emacs server socket.")
 #+end_src
 
 ** Disable warnings about obsolete functions when compiling
@@ -882,8 +889,24 @@ unto itself.
   :hook
   (org-mode . abbrev-mode)
   (org-mode . turn-on-auto-fill)
+  (org-mode . visual-line-mode)
   :custom
-  (org-edit-src-content-indentation 0))
+  (org-edit-src-content-indentation 0)
+  :config
+  (setq truncate-lines nil))
+#+end_src
+
+*** org-agenda
+
+#+begin_src emacs-lisp
+(use-package org-agenda
+  :commands org-agenda-list
+  :bind* ("C-c a" . org-agenda)
+  :custom
+  (org-agenda-todo-ignore-scheduled 'future)
+  (org-agenda-files (list my/org-roam-directory))
+  (org-todo-keywords
+   '((sequence "BACKLOG(b)" "TODO(t)" "IN-PROGRESS(p)" "IN-REVIEW(r)" "|" "DONE(d)" "CANCELED(c)"))))
 #+end_src
 
 *** org-roam
@@ -899,12 +922,19 @@ unto itself.
 	 ("i" . org-roam-node-insert)
 	 ("t" . org-roam-tag-add))
   :custom
-  (org-roam-directory (file-truename "~/Dropbox/org/roam"))
+  (org-roam-directory my/org-roam-directory)
   (org-roam-node-display-template
    (concat "${title:*} "
-           (propertize "${tags:*}" 'face 'org-tag)))
+	   (propertize "${directories:20}" 'face 'org-tag)
+           (propertize "${tags:20}" 'face 'org-tag)))
   :config
-  (org-roam-db-autosync-mode))
+  (org-roam-db-autosync-mode)
+  (cl-defmethod org-roam-node-directories ((node org-roam-node))
+    (if-let ((dirs (file-name-directory
+                    (file-relative-name (org-roam-node-file node)
+                                        org-roam-directory))))
+        (string-trim-right dirs "/")
+      "")))
 #+end_src
 
 ** personal
@@ -986,11 +1016,8 @@ unto itself.
   :unless (or noninteractive
 	      alternate-emacs)
   :no-require
-  ;:config
-  ;(unless (file-exists-p "/tmp/main-emacs")
-  ;  (make-directory "/tmp/main-emacs")
-					;  (chmod "/tmp/main-emacs" 448))
-  ;(setq server-socket-dir "/tmp/main-emacs")
+  :config
+  (setq server-socket-dir my/emacs-server-directory)
   :hook (after-init . server-start))
 #+end_src
 
