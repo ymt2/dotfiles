@@ -1,13 +1,15 @@
+.zcompcache
 .zcompdump
 .zsh_sessions
 .zshrc.local
 
-emacs/dot-config/emacs/init.el
-emacs/dot-config/emacs/org-roam.db
+emacs/dot-config/emacs/bookmarks
 emacs/dot-config/emacs/data/
 emacs/dot-config/emacs/eln-cache/
 emacs/dot-config/emacs/elpa/
 emacs/dot-config/emacs/eshell/
+emacs/dot-config/emacs/init.el
+emacs/dot-config/emacs/org-roam.db
+emacs/dot-config/emacs/recentf
 emacs/dot-config/emacs/tree-sitter/
 emacs/dot-config/emacs/url/
-emacs/dot-config/emacs/bookmarks

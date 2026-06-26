@@ -41,3 +41,5 @@
 	root = ~/work/src
 [github]
 	user = ymt2
+[wt]
+	basedir = .wt

@@ -2,6 +2,7 @@
 .envrc
 git-worktrees
 .agent-shell
+ai/*
 
 # Created by https://www.gitignore.io/api/tags,macos,emacs,python,intellij
 
