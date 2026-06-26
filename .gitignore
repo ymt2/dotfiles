@@ -13,3 +13,7 @@ emacs/dot-config/emacs/org-roam.db
 emacs/dot-config/emacs/recentf
 emacs/dot-config/emacs/tree-sitter/
 emacs/dot-config/emacs/url/
+
+pi/dot-pi/agent/*.json
+pi/dot-pi/agent/sessions
+pi/dot-pi/agent/skills
