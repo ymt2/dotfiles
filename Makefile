@@ -9,6 +9,7 @@ NO_FOLD_PACKAGES := dbus
 FOLD_PACKAGES := $(filter-out $(NO_FOLD_PACKAGES),$(PACKAGES))
 
 all: init
+	@mkdir -p ~/.local/share
 	@stow --dotfiles -v $(FOLD_PACKAGES)
 	@stow --dotfiles --no-folding -v $(NO_FOLD_PACKAGES)
 
