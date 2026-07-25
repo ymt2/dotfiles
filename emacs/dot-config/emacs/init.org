@@ -99,7 +99,10 @@ gc-cons-threshold (* 128 1024 1024))
 (defun user-data (dir)
   (expand-file-name dir user-data-directory))
 
-(defconst my/org-roam-directory (file-truename "~/SynologyDrive/home/org"))
+(defconst my/org-roam-directory
+  (file-truename "~/Library/CloudStorage/SynologyDrive-home/org/"))
+
+(setq org-roam-db-location (expand-file-name "~/.cache/org-roam/personal.db"))
 
 (defconst my/emacs-server-directory
   (expand-file-name "emacs/server"
@@ -185,6 +188,8 @@ unto itself.
   (menu-bar-mode nil)
   (history-delete-duplicates t)
   (history-length 200)
+  ;; files.el
+  (find-file-visit-truename t)
   :custom-face
   (default ((t (:family "PlemolJP35 Console NF" :foundry "nil" :slant normal :weight regular :height 120 :width normal))))
   ;(cursor ((t (:background "hotpink"))))
