@@ -909,7 +909,7 @@ unto itself.
   :bind* ("C-c a" . org-agenda)
   :custom
   (org-agenda-todo-ignore-scheduled 'future)
-  (org-agenda-files (list my/org-roam-directory))
+  (org-agenda-files (user-data "agenda-files"))
   (org-todo-keywords
    '((sequence "BACKLOG(b)" "TODO(t)" "IN-PROGRESS(p)" "IN-REVIEW(r)" "|" "DONE(d)" "CANCELED(c)"))))
 #+end_src
